@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile:*)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(wmctrl --version:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(xrandr:*)",
+      "Bash(wmctrl:*)",
+      "Bash(xdg-mime query:*)",
+      "Bash(echo:*)",
+      "Bash(evince:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(python3 -m py_compile:*)",
+      "Bash(python3:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,112 @@
+# Example Essay Rubric
+# Customize criteria and levels for essay assignments
+
+name: "Essay Grading Rubric"
+description: "Standard rubric for evaluating written essays and reports"
+total_points: 100
+
+criteria:
+  - name: "Thesis and Argument"
+    description: "Is there a clear thesis with well-developed supporting arguments?"
+    weight: 3.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Clear, compelling thesis. Arguments are well-reasoned and fully developed."
+      - name: "Good"
+        points: 80
+        description: "Clear thesis with solid supporting arguments. Minor gaps in reasoning."
+      - name: "Satisfactory"
+        points: 60
+        description: "Thesis is present but could be clearer. Arguments partially developed."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Weak or unclear thesis. Arguments lack development."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "No discernible thesis or coherent argument."
+
+  - name: "Evidence and Sources"
+    description: "Are claims supported by credible evidence and properly cited?"
+    weight: 2.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Strong, relevant evidence. Sources are credible and properly cited."
+      - name: "Good"
+        points: 80
+        description: "Good use of evidence with proper citations. Minor issues."
+      - name: "Satisfactory"
+        points: 60
+        description: "Some evidence provided. Citations present but incomplete."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Limited evidence. Citation issues."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "No evidence or sources provided."
+
+  - name: "Organization and Structure"
+    description: "Is the essay well-organized with clear flow between ideas?"
+    weight: 2.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Excellent organization. Clear introduction, body, conclusion. Smooth transitions."
+      - name: "Good"
+        points: 80
+        description: "Good organization with minor flow issues."
+      - name: "Satisfactory"
+        points: 60
+        description: "Basic structure present but transitions could be smoother."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Disorganized. Difficult to follow the argument."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "No clear organization or structure."
+
+  - name: "Writing Quality"
+    description: "Is the writing clear, concise, and free of errors?"
+    weight: 1.5
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Excellent writing. Clear, engaging prose. No grammatical errors."
+      - name: "Good"
+        points: 80
+        description: "Good writing with minor errors that don't impede understanding."
+      - name: "Satisfactory"
+        points: 60
+        description: "Adequate writing. Some errors but meaning is clear."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Frequent errors. Meaning sometimes unclear."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "Poor writing. Numerous errors impede understanding."
+
+  - name: "Critical Thinking"
+    description: "Does the essay demonstrate original thought and analysis?"
+    weight: 1.5
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Demonstrates deep critical thinking. Original insights and analysis."
+      - name: "Good"
+        points: 80
+        description: "Good analysis with some original thinking."
+      - name: "Satisfactory"
+        points: 60
+        description: "Some analysis present but mostly descriptive."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Minimal analysis. Mostly summary."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "No evidence of critical thinking or analysis."

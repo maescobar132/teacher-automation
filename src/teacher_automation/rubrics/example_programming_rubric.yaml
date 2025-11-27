@@ -1,0 +1,91 @@
+# Example Programming Assignment Rubric
+# Customize criteria and levels for your assignments
+
+name: "Programming Assignment Rubric"
+description: "Standard rubric for evaluating programming assignments"
+total_points: 100
+
+criteria:
+  - name: "Correctness"
+    description: "Does the code produce correct output for all test cases?"
+    weight: 3.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "All test cases pass. Edge cases are handled correctly."
+      - name: "Good"
+        points: 80
+        description: "Most test cases pass. Minor issues with edge cases."
+      - name: "Satisfactory"
+        points: 60
+        description: "Basic test cases pass. Several edge cases fail."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Some test cases pass. Core logic has issues."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "Code does not run or fails most test cases."
+
+  - name: "Code Quality"
+    description: "Is the code well-structured, readable, and maintainable?"
+    weight: 2.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Clean, well-organized code. Good naming conventions. Appropriate use of functions/methods."
+      - name: "Good"
+        points: 80
+        description: "Code is readable with minor organization issues."
+      - name: "Satisfactory"
+        points: 60
+        description: "Code works but could be better organized."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Code is difficult to follow. Poor naming or structure."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "Code is unreadable or extremely poorly organized."
+
+  - name: "Documentation"
+    description: "Are comments and documentation clear and helpful?"
+    weight: 1.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Clear docstrings, helpful comments explaining complex logic."
+      - name: "Good"
+        points: 80
+        description: "Adequate documentation with minor gaps."
+      - name: "Satisfactory"
+        points: 60
+        description: "Basic comments present but could be more detailed."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Minimal or unclear documentation."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "No documentation or comments."
+
+  - name: "Efficiency"
+    description: "Is the algorithm efficient in terms of time and space?"
+    weight: 1.0
+    max_points: 100
+    levels:
+      - name: "Excellent"
+        points: 100
+        description: "Optimal or near-optimal solution. Appropriate data structures."
+      - name: "Good"
+        points: 80
+        description: "Efficient solution with minor optimization opportunities."
+      - name: "Satisfactory"
+        points: 60
+        description: "Working solution but not optimized."
+      - name: "Needs Improvement"
+        points: 40
+        description: "Inefficient solution with obvious optimization needs."
+      - name: "Unsatisfactory"
+        points: 0
+        description: "Extremely inefficient or impractical solution."

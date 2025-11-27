@@ -1,0 +1,29 @@
+name: teachauto
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+  - pyyaml
+  - requests
+  - python-dotenv
+  - pip:
+      - anthropic          # Claude API client
+      - openai             # Optional OpenAI API
+      - PyPDF2             # PDF extraction
+      - pdfminer.six       # Alternative PDF extraction
+      - pandas             # Helpful for data processing
+      - pydantic           # For structured config validation
+      - python-docx        # DOCX extraction
+      - beautifulsoup4     # HTML parsing (forums, scraped content)
+      - lxml               # XML parsing (Moodle)
+      - tqdm               # Progress bars for bulk downloads
+      - typer              # CLI tool for your pipeline
+      - rich               # Pretty logs/outputs
+      - pytest             # Unit tests
+      - black              # Code formatting
+      - isort              # Import formatting
+      - cookiecutter       # If you want to generate modules later
+

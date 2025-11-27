@@ -1,0 +1,322 @@
+# =============================================================================
+# Course Configuration Template
+# =============================================================================
+# Copy this file and customize for your course.
+# Supports multiple units, varied task types, and per-course similarity rules.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Course Metadata
+# -----------------------------------------------------------------------------
+name: "Introduction to Computer Science"
+code: "CS101"
+semester: "Fall 2024"
+institution: "University Name"
+instructor: "Dr. Jane Smith"
+
+# -----------------------------------------------------------------------------
+# Moodle LMS Settings
+# -----------------------------------------------------------------------------
+moodle:
+  url: "https://moodle.university.edu"
+  # Token should be set via environment variable MOODLE_TOKEN
+  token: null
+  course_id: 12345
+
+# -----------------------------------------------------------------------------
+# Similarity / Plagiarism Rules (Course-Level Defaults)
+# -----------------------------------------------------------------------------
+# These rules apply to all tasks unless overridden at the unit or task level.
+similarity:
+  enabled: true
+  provider: "turnitin"  # turnitin, moss, internal
+  # API credentials via environment variables
+  api_key: null
+  api_url: "https://api.turnitin.com/api/v1"
+
+  thresholds:
+    warning: 15        # Percentage to flag for review
+    critical: 30       # Percentage to flag as potential plagiarism
+
+  exclude:
+    - quotes           # Exclude quoted material
+    - bibliography     # Exclude references/bibliography
+    - small_matches: 5 # Ignore matches under 5 words
+
+  # Submission types that require similarity checking
+  check_types:
+    - written
+    - forum
+
+# -----------------------------------------------------------------------------
+# Grading Configuration (Course-Level Defaults)
+# -----------------------------------------------------------------------------
+grading:
+  model: "gpt-4"
+  temperature: 0.3
+  max_tokens: 2000
+  feedback_language: "en"
+  include_rubric_breakdown: true
+
+# -----------------------------------------------------------------------------
+# Units and Tasks
+# -----------------------------------------------------------------------------
+# Each unit contains 2-3 tasks with individual configurations.
+# Task types: written, forum, quiz
+# -----------------------------------------------------------------------------
+
+units:
+  # ===========================================================================
+  # UNIT 1: Foundations of Computing
+  # ===========================================================================
+  - name: "Unit 1: Foundations of Computing"
+    code: "U1"
+    description: "Introduction to computing concepts, history, and basic terminology."
+    start_date: "2024-09-01"
+    end_date: "2024-09-21"
+
+    tasks:
+      # -----------------------------------------------------------------------
+      # Task 1.1: Written Assignment
+      # -----------------------------------------------------------------------
+      - name: "History of Computing Essay"
+        code: "U1T1"
+        type: written
+        moodle_id: 1001
+        max_points: 100
+        due_date: "2024-09-10"
+
+        rubric_file: "rubrics/essay_rubric.yaml"
+        prompt_template: "prompts/grading_essay.txt"
+
+        # Task-specific similarity override
+        similarity:
+          enabled: true
+          thresholds:
+            warning: 20
+            critical: 35
+
+        submission:
+          formats: [pdf, docx, txt]
+          min_words: 500
+          max_words: 1500
+
+      # -----------------------------------------------------------------------
+      # Task 1.2: Forum Discussion
+      # -----------------------------------------------------------------------
+      - name: "Ethics in Technology Discussion"
+        code: "U1T2"
+        type: forum
+        moodle_id: 1002
+        max_points: 50
+        due_date: "2024-09-15"
+
+        rubric_file: "rubrics/forum_rubric.yaml"
+        prompt_template: "prompts/grading_forum.txt"
+
+        similarity:
+          enabled: true
+          thresholds:
+            warning: 10
+            critical: 25
+
+        submission:
+          min_posts: 1
+          min_replies: 2
+          min_words_per_post: 100
+
+      # -----------------------------------------------------------------------
+      # Task 1.3: Quiz
+      # -----------------------------------------------------------------------
+      - name: "Computing Fundamentals Quiz"
+        code: "U1T3"
+        type: quiz
+        moodle_id: 1003
+        max_points: 25
+        due_date: "2024-09-20"
+
+        # Quizzes typically use Moodle's built-in grading
+        auto_graded: true
+
+        quiz_settings:
+          time_limit_minutes: 30
+          attempts_allowed: 1
+          shuffle_questions: true
+          shuffle_answers: true
+
+  # ===========================================================================
+  # UNIT 2: Programming Basics
+  # ===========================================================================
+  - name: "Unit 2: Programming Basics"
+    code: "U2"
+    description: "Introduction to programming concepts, variables, and control structures."
+    start_date: "2024-09-22"
+    end_date: "2024-10-12"
+
+    tasks:
+      # -----------------------------------------------------------------------
+      # Task 2.1: Programming Assignment
+      # -----------------------------------------------------------------------
+      - name: "Variables and Data Types"
+        code: "U2T1"
+        type: written
+        moodle_id: 2001
+        max_points: 100
+        due_date: "2024-09-30"
+
+        rubric_file: "rubrics/programming_rubric.yaml"
+        prompt_template: "prompts/grading_programming.txt"
+
+        # Code submissions - different similarity settings
+        similarity:
+          enabled: true
+          provider: "moss"  # Use MOSS for code similarity
+          thresholds:
+            warning: 30     # Higher threshold for code
+            critical: 50
+
+        submission:
+          formats: [py, java, js, zip]
+          language: "python"
+          test_cases_file: "tests/u2t1_tests.yaml"
+
+      # -----------------------------------------------------------------------
+      # Task 2.2: Forum - Code Review
+      # -----------------------------------------------------------------------
+      - name: "Peer Code Review Discussion"
+        code: "U2T2"
+        type: forum
+        moodle_id: 2002
+        max_points: 50
+        due_date: "2024-10-05"
+
+        rubric_file: "rubrics/code_review_rubric.yaml"
+        prompt_template: "prompts/grading_code_review.txt"
+
+        similarity:
+          enabled: false  # Disable for peer review
+
+        submission:
+          min_posts: 1
+          min_replies: 2
+          requires_code_snippet: true
+
+      # -----------------------------------------------------------------------
+      # Task 2.3: Control Structures Assignment
+      # -----------------------------------------------------------------------
+      - name: "Control Structures and Loops"
+        code: "U2T3"
+        type: written
+        moodle_id: 2003
+        max_points: 100
+        due_date: "2024-10-10"
+
+        rubric_file: "rubrics/programming_rubric.yaml"
+        prompt_template: "prompts/grading_programming.txt"
+
+        similarity:
+          enabled: true
+          provider: "moss"
+
+        submission:
+          formats: [py, java, js, zip]
+          language: "python"
+          test_cases_file: "tests/u2t3_tests.yaml"
+
+  # ===========================================================================
+  # UNIT 3: Data Structures
+  # ===========================================================================
+  - name: "Unit 3: Data Structures"
+    code: "U3"
+    description: "Lists, dictionaries, and basic data structure concepts."
+    start_date: "2024-10-13"
+    end_date: "2024-11-02"
+
+    tasks:
+      # -----------------------------------------------------------------------
+      # Task 3.1: Written Report
+      # -----------------------------------------------------------------------
+      - name: "Data Structures Comparison Report"
+        code: "U3T1"
+        type: written
+        moodle_id: 3001
+        max_points: 75
+        due_date: "2024-10-22"
+
+        rubric_file: "rubrics/technical_report_rubric.yaml"
+        prompt_template: "prompts/grading_technical_report.txt"
+
+        similarity:
+          enabled: true
+          thresholds:
+            warning: 15
+            critical: 30
+
+        submission:
+          formats: [pdf, docx]
+          min_words: 800
+          max_words: 2000
+          requires_diagrams: true
+
+      # -----------------------------------------------------------------------
+      # Task 3.2: Programming Project
+      # -----------------------------------------------------------------------
+      - name: "Student Database Implementation"
+        code: "U3T2"
+        type: written
+        moodle_id: 3002
+        max_points: 150
+        due_date: "2024-10-30"
+
+        rubric_file: "rubrics/project_rubric.yaml"
+        prompt_template: "prompts/grading_project.txt"
+
+        similarity:
+          enabled: true
+          provider: "moss"
+          thresholds:
+            warning: 25
+            critical: 45
+
+        submission:
+          formats: [zip]
+          language: "python"
+          requires_readme: true
+          test_cases_file: "tests/u3t2_tests.yaml"
+
+      # -----------------------------------------------------------------------
+      # Task 3.3: Unit Quiz
+      # -----------------------------------------------------------------------
+      - name: "Data Structures Quiz"
+        code: "U3T3"
+        type: quiz
+        moodle_id: 3003
+        max_points: 50
+        due_date: "2024-11-01"
+
+        auto_graded: true
+
+        quiz_settings:
+          time_limit_minutes: 45
+          attempts_allowed: 1
+          shuffle_questions: true
+          question_pool_size: 20
+          questions_shown: 15
+
+# -----------------------------------------------------------------------------
+# Default Rubric and Prompt Mappings by Task Type
+# -----------------------------------------------------------------------------
+# Used when task doesn't specify its own rubric/prompt
+defaults:
+  written:
+    rubric_file: "rubrics/essay_rubric.yaml"
+    prompt_template: "prompts/grading_essay.txt"
+
+  forum:
+    rubric_file: "rubrics/forum_rubric.yaml"
+    prompt_template: "prompts/grading_forum.txt"
+
+  quiz:
+    auto_graded: true
+    rubric_file: null
+    prompt_template: null

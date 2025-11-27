@@ -1,0 +1,106 @@
+curso: FI08
+nombre: Diseño Metodológico en Investigación GO
+descripcion: >
+  Curso del Doctorado en Educación (modalidad en línea). Incluye actividades
+  escritas y foros que requieren retroalimentación formativa doctoral.
+
+similitud:
+  max_permitido: 20
+  penalizable_hasta: 49
+  cero_desde: 50
+
+unidades:
+
+  - unidad: 1
+    nombre: "Unidad 1: Objetivos, muestra y escenario"
+    actividades:
+
+      - id: "1.1"
+        titulo: "Propuesta de objetivos"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/teacher_automation/config/rubrics/rubric_propuesta_objetivos.json"
+        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+
+        instrucciones: |
+          Actividad 1.1 – Propuesta de objetivos del protocolo de investigación.
+
+          Esta actividad es fundamental para proponer los objetivos más apropiados del protocolo de investigación,
+          ya que estos serán elaborados por la búsqueda del marco teórico. Se enfoca en redactar un objetivo general
+          y objetivos específicos con verbo en infinitivo, indicando qué investigarás, cómo lo harás y para qué lo realizarás.
+
+          El objetivo general debe:
+          – iniciar con un verbo en infinitivo,
+          – indicar claramente qué se investiga,
+          – explicar cómo se desarrollará la investigación,
+          – señalar el propósito o aporte esperado (para qué),
+          – incluir explícita o implícitamente el contexto.
+
+          Los objetivos específicos deben:
+          – desglosar las acciones necesarias para alcanzar el objetivo general,
+          – usar verbos adecuados de la Taxonomía de Bloom,
+          – ser coherentes con el problema y las preguntas,
+          – reconstruir el objetivo general en conjunto.
+
+          Formato de entrega:
+          – Archivo Word nombrado: Apellido Nombre U1A1
+          – Portada
+          – Introducción (incluyendo tabla de elementos clave)
+          – Desarrollo
+          – Conclusiones
+          – Referencias
+
+          Criterios:
+          – Máximo 20% de similitud (excluyendo citas formales)
+          – 50% o más → calificación cero
+          – 21%–49% → penalización a criterio del tutor
+
+
+      - id: "1.2"
+        titulo: "Foro: Muestreos cuantitativos y cualitativos"
+        tipo: foro
+        extraer_texto: false
+        rubrica: "src/teacher_automation/config/rubrics/rubric_foros_general.json"
+        prompt: "src/teacher_automation/config/prompts/retroalimentacion_foro.txt"
+
+        instrucciones: |
+          En este foro distinguirás los tipos de muestreo según el enfoque metodológico.
+          Debes publicar una síntesis comparativa que explique:
+
+          – Objetivo del muestreo cuantitativo vs cualitativo  
+          – Características principales  
+          – Número sugerido de participantes según Normas de Titulación  
+          – Tipos de muestreo más utilizados  
+          – Ventajas y desventajas  
+
+          Además, debes comentar dos aportes de compañeros, valorando:
+          – Pertinencia  
+          – Claridad  
+          – Coherencia metodológica
+
+
+      - id: "1.3"
+        titulo: "Posible muestra y escenario de aplicación"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/teacher_automation/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+
+        instrucciones: |
+          Esta actividad busca definir quiénes podrían ser tus participantes y en qué contexto
+          se realizará tu investigación. Debe existir coherencia con los objetivos y el enfoque.
+
+          Elabora un escrito que incluya:
+          – Universo de estudio  
+          – Muestra: número y características  
+          – Tipo de muestreo y justificación  
+          – Criterios de inclusión y exclusión  
+          – Escenario de estudio  
+
+          Formato de entrega:
+          – Archivo Word o PDF nombrado Apellido Nombre U1A3
+          – Portada
+          – Introducción (incluyendo tabla de elementos clave)
+          – Desarrollo
+          – Conclusiones
+          – Referencias
