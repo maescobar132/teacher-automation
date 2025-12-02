@@ -203,3 +203,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Student data (privacy)
+outputs/
+outputs_pdf/
+outputs_feedback/
+*.pdf
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!pyproject.json
