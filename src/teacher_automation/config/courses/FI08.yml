@@ -104,3 +104,61 @@ unidades:
           – Desarrollo
           – Conclusiones
           – Referencias
+          
+  - unidad: 2
+    nombre: "Unidad 2: Instrumentos de recolección de información"
+    actividades:
+
+      - id: "2.1"
+        titulo: "Foro: Identificación de instrumentos en la investigación"
+        tipo: foro
+        extraer_texto: false
+        rubrica: "src/teacher_automation/config/rubrics/rubric_foros_general.json"
+        prompt: "src/teacher_automation/config/prompts/retroalimentacion_foro.txt"
+        instrucciones: |
+          En este foro, los estudiantes deben identificar y comentar instrumentos
+          de recolección de información utilizados en investigaciones previas,
+          vinculándolos con su propio protocolo de investigación. Cada estudiante
+          realiza una aportación inicial y comenta al menos dos participaciones de compañeros.
+
+      - id: "2.2"
+        titulo: "Selección y/o diseño de instrumentos para recabar información"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/teacher_automation/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          Introducción
+          Esta actividad constituye un elemento esencial del protocolo, pues permite seleccionar
+          los instrumentos que orientarán la recolección de información en la tesis.
+
+          Propósito de la actividad
+          Desarrollar una propuesta de los instrumentos que se emplearán en el protocolo de investigación.
+
+          Instrucciones
+          Elabora un documento en Word (dos páginas aproximadas en el desarrollo) donde describas
+          los instrumentos que aplicarás en tu tesis, ya sean previamente diseñados o de construcción propia.
+          Incluye:
+          - Nombre del instrumento
+          - Autor y año
+          - Objetivo del instrumento
+          - Instrucciones de aplicación
+          - Proceso para obtener la validez
+          - Proceso para obtener la confiabilidad
+          - Indicadores que aborda
+
+          Producto entregable
+          - Formato Word nombrado: Apellido Nombre U2A2 (ejemplo: Gómez Ana U2A2.docx)
+          - Portada (1 página)
+          - Introducción con tabla de elementos clave (1 página)
+          - Desarrollo (2 páginas)
+          - Conclusiones (1 página)
+          - Referencias (1 página)
+
+          Criterios importantes
+          - Máximo permitido de similitud: 20% (excluye citas, referencias y frases de 8 palabras o menos).
+          - Si la similitud es igual o mayor al 50%, la actividad se calificará con cero.
+          - Si la similitud supera ligeramente el máximo permitido sin llegar al 50%, podrá aplicarse una penalización.
+          - Es obligatorio revisar la rúbrica antes de entregar.
+          - Las referencias deben cumplir APA séptima edición, incluir URL o DOI, y aparecer tanto en el texto como en la lista de referencias.
+

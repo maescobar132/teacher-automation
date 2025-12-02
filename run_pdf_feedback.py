@@ -17,6 +17,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import re
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,11 @@ Examples:
         type=Path,
         required=True,
         help="Directory containing JSON feedback files",
+    )
+    parser.add_argument(
+        "--sanitize",
+        action="store_true",
+        help="Use sanitized student name from metadata instead of source filename",
     )
     return parser.parse_args()
 
@@ -344,10 +350,16 @@ def main() -> int:
         # Generate markdown
         markdown = generate_markdown(metadata, retroalimentacion)
 
-        # Generate PDF
-        pdf_filename = f"{sanitize_filename(estudiante)}.pdf"
+	# Generate PDF
+        if args.sanitize:
+            pdf_filename = f"{sanitize_filename(estudiante)}.pdf"
+        else:
+            stem = json_file.stem.rstrip('. ')
+            pdf_filename = f"{stem}.pdf"
+        
         pdf_path = pdf_dir / pdf_filename
-
+        
+        
         if generate_pdf(markdown, pdf_path):
             print(f"PDF generado: {pdf_path}")
             success_count += 1

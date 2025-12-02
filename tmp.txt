@@ -1,0 +1,274 @@
+.
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── convert_to_pdf.py
+├── docs
+│   ├── index.md
+│   ├── installation.md
+│   └── usage.md
+├── environment.yml
+├── generate_grades_summary.py
+├── HISTORY.md
+├── justfile
+├── LICENSE
+├── MANIFEST.in
+├── my_grades.csv
+├── outputs
+│   └── FI08
+│       └── unidad_1
+│           ├── actividad_1.1
+│           │   ├── ADRIANA MARIA NAVARRETE GARZON_99367_assignsubmission_file_NAVARRETE ADRIANA U1A1 OBJETIVOS INVESTIGACION.json
+│           │   ├── CAROLINA PELAEZ DELGADILLO_99361_assignsubmission_file_Peláez Carolina U1A1.json
+│           │   ├── DAVID ESTEBAN TABARES CANO_99355_assignsubmission_file_TabaresDavidU1A1.json
+│           │   ├── DENNIS YOHANA BEJARANO CARRION_99371_assignsubmission_file_Bejarano Dennis U1A1.json
+│           │   ├── DIEGO ARMANDO CABRERA DELGADO_99358_assignsubmission_file_U1A1 Cabrera Diego...json
+│           │   ├── EVARISTO JOSE ARIZA SUAREZ_99360_assignsubmission_file_ArizaSuarezU1A1.json
+│           │   ├── FABIAN HERNANDO ROJAS DUARTE_99377_assignsubmission_file_Rojas Fabian U1A1.json
+│           │   ├── grades_summary.csv
+│           │   ├── HASLY YANNETH GARCIA CASTILLO_99363_assignsubmission_file_García Hasly U1A1 ok.json
+│           │   ├── KAREN JULIETH ARTUNDUAGA GARZON_99374_assignsubmission_file_Artunduaga-Karen.U1.A1.1.json
+│           │   ├── LAURA XIMENA TIBADUIZA HENAO_99362_assignsubmission_file_Tibaduiza Laura U1A1.json
+│           │   ├── LISSA LORENA HERNANDEZ LOZANO_99365_assignsubmission_file_HernándezLissaU1A1.json
+│           │   ├── LUENRY MENDOZA MONTECINO_99376_assignsubmission_file_MendozaLuenryU1A1.json
+│           │   ├── LUZ ADRIANA FRANCO TORRES_99366_assignsubmission_file_FrancoLuzPropuestaObjetivosU1A1.json
+│           │   ├── MARISOL CUDRIS MORENO_99357_assignsubmission_file_Cudris Marisol U1A1.json
+│           │   ├── MARISOL HERNANDEZ GARCIA_99368_assignsubmission_file_Hernandez Marisol_U1A1.json
+│           │   ├── OMAIRA DEL PILAR LOZADA CAMACHO_99370_assignsubmission_file_Lozada Omaira U1 A 1.1.json
+│           │   ├── _resumen_procesamiento.json
+│           │   ├── ROSLADY KATHERIN QUESADA DIAZ_99359_assignsubmission_file_QuesadaRosladyU1A1.json
+│           │   ├── SANDRA MILENA VEGA ._99372_assignsubmission_file_Vega Sandra Milena U1A1 (2).json
+│           │   ├── VALENTINA MARIN POMEO_99364_assignsubmission_file_Marín Valentina U1A1..json
+│           │   ├── VLADIMIR ARIAS RAMIREZ_99369_assignsubmission_file_ARIASVLADIMIR U1A1.json
+│           │   ├── YINA PAOLA GARCIA MEDINA_99373_assignsubmission_file_GARCIAYINAU1A1.json
+│           │   └── ZUHE AYMARA CHACIN PARRA_99375_assignsubmission_file_PROPUESTA DE OBJETIVOS ZUHÉCHACÍN 145869.json
+│           └── actividad_1.3
+│               ├── CAROLINA PELAEZ DELGADILLO.json
+│               ├── CAROLINA PELAEZ DELGADILLO.pdf
+│               ├── DAVID ESTEBAN TABARES CANO.json
+│               ├── DAVID ESTEBAN TABARES CANO.pdf
+│               ├── DENNIS YOHANA BEJARANO CARRION.json
+│               ├── DENNIS YOHANA BEJARANO CARRION.pdf
+│               ├── DIEGO ARMANDO CABRERA DELGADO.json
+│               ├── DIEGO ARMANDO CABRERA DELGADO.pdf
+│               ├── EVARISTO JOSE ARIZA SUAREZ.json
+│               ├── EVARISTO JOSE ARIZA SUAREZ.pdf
+│               ├── FABIAN HERNANDO ROJAS DUARTE.json
+│               ├── FABIAN HERNANDO ROJAS DUARTE.pdf
+│               ├── HASLY YANNETH GARCIA CASTILLO.json
+│               ├── HASLY YANNETH GARCIA CASTILLO.pdf
+│               ├── KAREN JULIETH ARTUNDUAGA GARZON.json
+│               ├── KAREN JULIETH ARTUNDUAGA GARZON.pdf
+│               ├── LAURA XIMENA TIBADUIZA HENAO.json
+│               ├── LAURA XIMENA TIBADUIZA HENAO.pdf
+│               ├── LISSA LORENA HERNANDEZ LOZANO.json
+│               ├── LISSA LORENA HERNANDEZ LOZANO.pdf
+│               ├── LUENRY MENDOZA MONTECINO.json
+│               ├── LUENRY MENDOZA MONTECINO.pdf
+│               ├── LUZ ADRIANA FRANCO TORRES.json
+│               ├── LUZ ADRIANA FRANCO TORRES.pdf
+│               ├── MARISOL CUDRIS MORENO.json
+│               ├── MARISOL CUDRIS MORENO.pdf
+│               ├── MARISOL HERNANDEZ GARCIA.json
+│               ├── MARISOL HERNANDEZ GARCIA.pdf
+│               ├── Navarrete_adriana_u1a3_muestra.json
+│               ├── Navarrete_adriana_u1a3_muestra.pdf
+│               ├── OMAIRA DEL PILAR LOZADA CAMACHO.json
+│               ├── OMAIRA DEL PILAR LOZADA CAMACHO.pdf
+│               ├── ORLANDO SANGUINO SALAZAR.json
+│               ├── ORLANDO SANGUINO SALAZAR.pdf
+│               ├── _resumen_procesamiento.json
+│               ├── ROSLADY KATHERIN QUESADA DIAZ.json
+│               ├── ROSLADY KATHERIN QUESADA DIAZ.pdf
+│               ├── SANDRA MILENA VEGA ..json
+│               ├── SANDRA MILENA VEGA ..pdf
+│               ├── VALENTINA MARIN POMEO.json
+│               ├── VALENTINA MARIN POMEO.pdf
+│               ├── VLADIMIR ARIAS RAMIREZ.json
+│               ├── VLADIMIR ARIAS RAMIREZ.pdf
+│               ├── YINA PAOLA GARCIA MEDINA.json
+│               ├── YINA PAOLA GARCIA MEDINA.pdf
+│               ├── ZUHE AYMARA CHACIN PARRA.json
+│               └── ZUHE AYMARA CHACIN PARRA.pdf
+├── outputs_pdf
+│   └── FI08
+│       └── unidad_1
+│           ├── actividad_1.1
+│           │   ├── ADRIANA MARIA NAVARRETE GARZON_99367_assignsubmission_file_NAVARRETE ADRIANA U1A1 OBJETIVOS INVESTIGACION.pdf
+│           │   ├── CAROLINA PELAEZ DELGADILLO_99361_assignsubmission_file_Peláez Carolina U1A1.pdf
+│           │   ├── DAVID ESTEBAN TABARES CANO_99355_assignsubmission_file_TabaresDavidU1A1.pdf
+│           │   ├── DENNIS YOHANA BEJARANO CARRION_99371_assignsubmission_file_Bejarano Dennis U1A1.pdf
+│           │   ├── DIEGO ARMANDO CABRERA DELGADO_99358_assignsubmission_file_U1A1 Cabrera Diego...pdf
+│           │   ├── EVARISTO JOSE ARIZA SUAREZ_99360_assignsubmission_file_ArizaSuarezU1A1.pdf
+│           │   ├── FABIAN HERNANDO ROJAS DUARTE_99377_assignsubmission_file_Rojas Fabian U1A1.pdf
+│           │   ├── HASLY YANNETH GARCIA CASTILLO_99363_assignsubmission_file_García Hasly U1A1 ok.pdf
+│           │   ├── LAURA XIMENA TIBADUIZA HENAO_99362_assignsubmission_file_Tibaduiza Laura U1A1.pdf
+│           │   ├── LISSA LORENA HERNANDEZ LOZANO_99365_assignsubmission_file_HernándezLissaU1A1.pdf
+│           │   ├── LUENRY MENDOZA MONTECINO_99376_assignsubmission_file_MendozaLuenryU1A1.pdf
+│           │   ├── LUZ ADRIANA FRANCO TORRES_99366_assignsubmission_file_FrancoLuzPropuestaObjetivosU1A1.pdf
+│           │   ├── MARISOL CUDRIS MORENO_99357_assignsubmission_file_Cudris Marisol U1A1.pdf
+│           │   ├── MARISOL HERNANDEZ GARCIA_99368_assignsubmission_file_Hernandez Marisol_U1A1.pdf
+│           │   ├── OMAIRA DEL PILAR LOZADA CAMACHO_99370_assignsubmission_file_Lozada Omaira U1 A 1.1.pdf
+│           │   ├── ROSLADY KATHERIN QUESADA DIAZ_99359_assignsubmission_file_QuesadaRosladyU1A1.pdf
+│           │   ├── SANDRA MILENA VEGA ._99372_assignsubmission_file_Vega Sandra Milena U1A1 (2).pdf
+│           │   ├── VALENTINA MARIN POMEO_99364_assignsubmission_file_Marín Valentina U1A1..pdf
+│           │   ├── VLADIMIR ARIAS RAMIREZ_99369_assignsubmission_file_ARIASVLADIMIR U1A1.pdf
+│           │   ├── YINA PAOLA GARCIA MEDINA_99373_assignsubmission_file_GARCIAYINAU1A1.pdf
+│           │   └── ZUHE AYMARA CHACIN PARRA_99375_assignsubmission_file_PROPUESTA DE OBJETIVOS ZUHÉCHACÍN 145869.pdf
+│           ├── actividad_1.3
+│           │   ├── CAROLINA PELAEZ DELGADILLO.pdf
+│           │   ├── DAVID ESTEBAN TABARES CANO.pdf
+│           │   ├── DENNIS YOHANA BEJARANO CARRION.pdf
+│           │   ├── DIEGO ARMANDO CABRERA DELGADO.pdf
+│           │   ├── EVARISTO JOSE ARIZA SUAREZ.pdf
+│           │   ├── FABIAN HERNANDO ROJAS DUARTE.pdf
+│           │   ├── HASLY YANNETH GARCIA CASTILLO.pdf
+│           │   ├── KAREN JULIETH ARTUNDUAGA GARZON.pdf
+│           │   ├── LAURA XIMENA TIBADUIZA HENAO.pdf
+│           │   ├── LISSA LORENA HERNANDEZ LOZANO.pdf
+│           │   ├── LUENRY MENDOZA MONTECINO.pdf
+│           │   ├── LUZ ADRIANA FRANCO TORRES.pdf
+│           │   ├── MARISOL CUDRIS MORENO.pdf
+│           │   ├── MARISOL HERNANDEZ GARCIA.pdf
+│           │   ├── Navarrete_adriana_u1a3_muestra.pdf
+│           │   ├── OMAIRA DEL PILAR LOZADA CAMACHO.pdf
+│           │   ├── ORLANDO SANGUINO SALAZAR.pdf
+│           │   ├── ROSLADY KATHERIN QUESADA DIAZ.pdf
+│           │   ├── SANDRA MILENA VEGA ..pdf
+│           │   ├── u13.zip
+│           │   ├── VALENTINA MARIN POMEO.pdf
+│           │   ├── VLADIMIR ARIAS RAMIREZ.pdf
+│           │   ├── YINA PAOLA GARCIA MEDINA.pdf
+│           │   └── ZUHE AYMARA CHACIN PARRA.pdf
+│           └── actividad_1.3.zip
+├── __pycache__
+│   ├── review_submissions.cpython-311.pyc
+│   ├── run_activity.cpython-311.pyc
+│   ├── run_activity.cpython-312.pyc
+│   └── run_pdf_feedback.cpython-311.pyc
+├── pyproject.toml
+├── README.md
+├── review_submissions.py
+├── run_activity.py
+├── run_pdf_feedback.py
+├── src
+│   └── teacher_automation
+│       ├── cli.py
+│       ├── config
+│       │   ├── courses
+│       │   │   └── FI08.yml
+│       │   ├── example_course.yaml
+│       │   ├── __init__.py
+│       │   ├── loader.py
+│       │   ├── models.py
+│       │   ├── prompts
+│       │   │   ├── retroalimentacion_formativa.txt
+│       │   │   └── retroalimentacion_foro.txt
+│       │   ├── __pycache__
+│       │   │   ├── __init__.cpython-311.pyc
+│       │   │   ├── loader.cpython-311.pyc
+│       │   │   └── models.cpython-311.pyc
+│       │   └── rubrics
+│       │       ├── rubric_3.1_tabla_operacionalizacion.json
+│       │       ├── rubric_3.2_tabla_diseno_investigacion.json
+│       │       ├── rubric_4.1_propuesta_analisis_datos.json
+│       │       ├── rubric_4.2_foro_etica_investigacion.json
+│       │       ├── rubric_4.3_foro_videograbacion_metodo.json
+│       │       ├── rubric_escrito_uca_ead.json
+│       │       ├── rubric_foros_general.json
+│       │       ├── rubric_presentacion_ppt.json
+│       │       ├── rubric_propuesta_objetivos.json
+│       │       └── rubric_video.json
+│       ├── grading
+│       │   ├── feedback.py
+│       │   ├── generate_feedback.py
+│       │   ├── grader.py
+│       │   ├── __init__.py
+│       │   └── __pycache__
+│       │       ├── feedback.cpython-311.pyc
+│       │       ├── generate_feedback.cpython-311.pyc
+│       │       ├── grader.cpython-311.pyc
+│       │       └── __init__.cpython-311.pyc
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── main.py
+│       ├── manual
+│       │   ├── __init__.py
+│       │   ├── manual_review.py
+│       │   └── __pycache__
+│       │       ├── __init__.cpython-311.pyc
+│       │       ├── __init__.cpython-312.pyc
+│       │       ├── manual_review.cpython-311.pyc
+│       │       └── manual_review.cpython-312.pyc
+│       ├── moodle
+│       │   ├── api.py
+│       │   ├── client.py
+│       │   ├── __init__.py
+│       │   └── models.py
+│       ├── output
+│       │   ├── __init__.py
+│       │   ├── pdf_generator.py
+│       │   └── __pycache__
+│       │       ├── __init__.cpython-311.pyc
+│       │       ├── __init__.cpython-312.pyc
+│       │       ├── pdf_generator.cpython-311.pyc
+│       │       └── pdf_generator.cpython-312.pyc
+│       ├── processing
+│       │   ├── extractor.py
+│       │   ├── filenames.py
+│       │   ├── filetypes.py
+│       │   ├── __init__.py
+│       │   ├── parser.py
+│       │   └── __pycache__
+│       │       ├── extractor.cpython-311.pyc
+│       │       ├── filenames.cpython-311.pyc
+│       │       ├── filetypes.cpython-311.pyc
+│       │       ├── __init__.cpython-311.pyc
+│       │       └── parser.cpython-311.pyc
+│       ├── prompts
+│       │   ├── feedback_only.txt
+│       │   ├── grading_essay.txt
+│       │   ├── grading_programming.txt
+│       │   ├── __init__.py
+│       │   ├── loader.py
+│       │   ├── __pycache__
+│       │   │   ├── __init__.cpython-311.pyc
+│       │   │   ├── loader.cpython-311.pyc
+│       │   │   └── templates.cpython-311.pyc
+│       │   └── templates.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-311.pyc
+│       │   └── __init__.cpython-312.pyc
+│       ├── rubrics
+│       │   ├── example_essay_rubric.yaml
+│       │   ├── example_programming_rubric.yaml
+│       │   ├── __init__.py
+│       │   ├── loader.py
+│       │   ├── models.py
+│       │   └── __pycache__
+│       │       ├── __init__.cpython-311.pyc
+│       │       ├── loader.cpython-311.pyc
+│       │       └── models.cpython-311.pyc
+│       ├── teacher_automation.py
+│       ├── turnitin
+│       │   ├── client.py
+│       │   ├── __init__.py
+│       │   └── models.py
+│       ├── utils
+│       │   ├── files.py
+│       │   ├── __init__.py
+│       │   ├── logging.py
+│       │   └── __pycache__
+│       │       ├── files.cpython-311.pyc
+│       │       ├── files.cpython-312.pyc
+│       │       ├── __init__.cpython-311.pyc
+│       │       ├── __init__.cpython-312.pyc
+│       │       ├── logging.cpython-311.pyc
+│       │       └── logging.cpython-312.pyc
+│       └── utils.py
+├── tests
+│   ├── __init__.py
+│   ├── test_pipeline_verification.py
+│   └── test_teacher_automation.py
+└── tmp.txt
+
+38 directories, 234 files
