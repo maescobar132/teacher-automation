@@ -73,6 +73,15 @@ from .filenames import (
     SUPPORTED_EXTENSIONS,
 )
 
+# Submission file discovery
+from .submissions import (
+    get_submission_files,
+    get_student_name,
+    extract_tables_from_submission,
+    dataframes_to_markdown_context,
+    EXTENSION_PRIORITY,
+)
+
 __all__ = [
     # File types
     "FileType",
@@ -127,4 +136,10 @@ __all__ = [
     "to_ascii",
     "to_title_case",
     "SUPPORTED_EXTENSIONS",
+    # Submission discovery
+    "get_submission_files",
+    "get_student_name",
+    "extract_tables_from_submission",
+    "dataframes_to_markdown_context",
+    "EXTENSION_PRIORITY",
 ]

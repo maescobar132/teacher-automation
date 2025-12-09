@@ -30,8 +30,7 @@ OUTPUT_SCHEMA = """{
       "justificacion": "string - explicación del puntaje asignado"
     }
   ],
-  "comentario_narrativo": "string - retroalimentación formativa detallada con apertura, desarrollo y cierre",
-  "resumen_para_moodle": "string - versión breve (máximo 500 caracteres) para mostrar en Moodle"
+  "comentario_narrativo": "string - retroalimentación formativa detallada con apertura, desarrollo y cierre"
 }"""
 
 
@@ -125,9 +124,8 @@ REGLAS:
 4. "maximo" debe ser el puntaje máximo posible para ese criterio según la rúbrica.
 5. "justificacion" debe explicar específicamente por qué se asignó ese puntaje.
 6. "comentario_narrativo" debe ser formativo, constructivo y personalizado.
-7. "resumen_para_moodle" debe ser conciso (máximo 500 caracteres).
-8. NO incluyas bloques de código markdown (```json) alrededor del JSON.
-9. NO incluyas texto explicativo antes o después del JSON.
+7. NO incluyas bloques de código markdown (```json) alrededor del JSON.
+8. NO incluyas texto explicativo antes o después del JSON.
 
 Devuelve SOLO el JSON, sin texto adicional antes o después.
 """)
@@ -190,7 +188,7 @@ def validate_feedback_structure(data: dict[str, Any]) -> None:
     Raises:
         ValueError: Si faltan campos requeridos o tienen tipos incorrectos
     """
-    required_keys = ["puntajes", "comentario_narrativo", "resumen_para_moodle"]
+    required_keys = ["puntajes", "comentario_narrativo"]
 
     missing_keys = [key for key in required_keys if key not in data]
     if missing_keys:
@@ -202,9 +200,6 @@ def validate_feedback_structure(data: dict[str, Any]) -> None:
     # Validar tipos de campos de texto
     if not isinstance(data["comentario_narrativo"], str):
         raise ValueError("El campo 'comentario_narrativo' debe ser un string")
-
-    if not isinstance(data["resumen_para_moodle"], str):
-        raise ValueError("El campo 'resumen_para_moodle' debe ser un string")
 
     # Validar estructura de puntajes
     if not isinstance(data["puntajes"], list):
@@ -234,6 +229,67 @@ def validate_feedback_structure(data: dict[str, Any]) -> None:
             raise ValueError(f"'maximo' debe ser un número (índice {i})")
         if not isinstance(puntaje["justificacion"], str):
             raise ValueError(f"'justificacion' debe ser string (índice {i})")
+
+
+def validate_and_fix_scores_against_rubric(
+    puntajes: list[dict[str, Any]],
+    rubric: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """
+    Validate and fix scores against the rubric maximums.
+
+    Ensures that:
+    1. Each score's 'maximo' matches the rubric's maximum for that criterion
+    2. Each score's 'puntaje' does not exceed 'maximo'
+
+    Args:
+        puntajes: List of score dictionaries from AI response
+        rubric: The rubric dictionary with criteria definitions
+
+    Returns:
+        Fixed list of scores with corrected 'maximo' values
+    """
+    # Build a lookup of criterion name -> max score from rubric
+    rubric_maximos = {}
+    for criterio in rubric.get("criterios", []):
+        nombre = criterio.get("nombre", "")
+        maximo = criterio.get("maximo", 0)
+        rubric_maximos[nombre] = maximo
+
+    fixed_puntajes = []
+    for puntaje in puntajes:
+        criterio_nombre = puntaje.get("criterio", "")
+        puntaje_valor = puntaje.get("puntaje", 0)
+        maximo_ai = puntaje.get("maximo", 0)
+
+        # Get the correct maximum from rubric
+        maximo_rubric = rubric_maximos.get(criterio_nombre)
+
+        if maximo_rubric is not None:
+            # Fix maximo if AI got it wrong
+            if maximo_ai != maximo_rubric:
+                logger.warning(
+                    f"Corrigiendo maximo para '{criterio_nombre}': "
+                    f"AI dijo {maximo_ai}, rúbrica dice {maximo_rubric}"
+                )
+                puntaje["maximo"] = maximo_rubric
+
+            # Cap score if it exceeds maximum
+            if puntaje_valor > maximo_rubric:
+                logger.warning(
+                    f"Puntaje excede máximo para '{criterio_nombre}': "
+                    f"{puntaje_valor} > {maximo_rubric}, ajustando a {maximo_rubric}"
+                )
+                puntaje["puntaje"] = maximo_rubric
+        else:
+            logger.warning(
+                f"Criterio '{criterio_nombre}' no encontrado en rúbrica, "
+                f"manteniendo valores del AI"
+            )
+
+        fixed_puntajes.append(puntaje)
+
+    return fixed_puntajes
 
 
 def _call_llm_for_feedback(
@@ -357,8 +413,7 @@ def generate_feedback_for_text(
             "metadata": {...},
             "retroalimentacion": {
                 "puntajes": [...],
-                "comentario_narrativo": "",
-                "resumen_para_moodle": ""
+                "comentario_narrativo": ""
             }
         }
 
@@ -436,6 +491,11 @@ def generate_feedback_for_text(
                 f"Error original: {parse_error}. Error en reintento: {exc}"
             )
 
+    # Validate and fix scores against rubric
+    llm_data["puntajes"] = validate_and_fix_scores_against_rubric(
+        llm_data["puntajes"], rubric
+    )
+
     # Construir estructura final con metadata
     fecha_procesamiento = datetime.now(timezone.utc).isoformat()
 
@@ -455,7 +515,6 @@ def generate_feedback_for_text(
         "retroalimentacion": {
             "puntajes": llm_data["puntajes"],
             "comentario_narrativo": llm_data["comentario_narrativo"],
-            "resumen_para_moodle": llm_data["resumen_para_moodle"],
         },
     }
 
@@ -519,7 +578,7 @@ def _validate_final_structure(data: dict[str, Any]) -> None:
         raise ValueError("metadata.student_text debe ser string")
 
     # Validar retroalimentacion (ya validada por validate_feedback_structure)
-    retro_keys = ["puntajes", "comentario_narrativo", "resumen_para_moodle"]
+    retro_keys = ["puntajes", "comentario_narrativo"]
     missing_retro = [k for k in retro_keys if k not in data["retroalimentacion"]]
     if missing_retro:
         raise ValueError(f"Retroalimentacion falta claves: {missing_retro}")
@@ -644,9 +703,8 @@ REGLAS:
 4. "maximo" debe ser el puntaje máximo posible para ese criterio según la rúbrica.
 5. "justificacion" debe explicar específicamente por qué se asignó ese puntaje.
 6. "comentario_narrativo" debe ser formativo, constructivo y personalizado.
-7. "resumen_para_moodle" debe ser conciso (máximo 500 caracteres).
-8. NO incluyas bloques de código markdown (```json) alrededor del JSON.
-9. NO incluyas texto explicativo antes o después del JSON.
+7. NO incluyas bloques de código markdown (```json) alrededor del JSON.
+8. NO incluyas texto explicativo antes o después del JSON.
 
 Devuelve SOLO el JSON, sin texto adicional antes o después.
 """)
@@ -914,6 +972,11 @@ def generate_feedback_batch(
                 llm_data = extract_json_from_response(fixed_text)
                 validate_feedback_structure(llm_data)
 
+            # Validate and fix scores against rubric
+            llm_data["puntajes"] = validate_and_fix_scores_against_rubric(
+                llm_data["puntajes"], rubric
+            )
+
             # Build final structure
             from datetime import datetime, timezone
             fecha_procesamiento = datetime.now(timezone.utc).isoformat()
@@ -934,7 +997,6 @@ def generate_feedback_batch(
                 "retroalimentacion": {
                     "puntajes": llm_data["puntajes"],
                     "comentario_narrativo": llm_data["comentario_narrativo"],
-                    "resumen_para_moodle": llm_data["resumen_para_moodle"],
                 },
             }
 

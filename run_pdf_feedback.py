@@ -103,7 +103,6 @@ def extract_retroalimentacion(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "puntajes": retro.get("puntajes", []),
         "comentario_narrativo": retro.get("comentario_narrativo", ""),
-        "resumen_para_moodle": retro.get("resumen_para_moodle", ""),
     }
 
 
@@ -153,10 +152,6 @@ def generate_markdown(metadata: dict[str, Any], retroalimentacion: dict[str, Any
     lines.append("## Comentario narrativo")
     lines.append("")
     lines.append(retroalimentacion.get("comentario_narrativo", "*Sin comentario narrativo.*"))
-    lines.append("")
-    lines.append("## Resumen para Moodle")
-    lines.append("")
-    lines.append(retroalimentacion.get("resumen_para_moodle", "*Sin resumen.*"))
 
     return "\n".join(lines)
 

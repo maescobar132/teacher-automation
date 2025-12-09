@@ -126,7 +126,6 @@ def _extract_feedback_data(json_data: dict[str, Any]) -> dict[str, Any]:
         "metadata": metadata,
         "puntajes": actual_feedback.get("puntajes", []),
         "comentario_narrativo": actual_feedback.get("comentario_narrativo", ""),
-        "resumen_para_moodle": actual_feedback.get("resumen_para_moodle", ""),
     }
 
 
@@ -505,7 +504,6 @@ def _extract_hybrid_feedback_data(json_data: dict[str, Any]) -> dict[str, Any]:
         "metadata": metadata,
         "puntajes": actual_feedback.get("puntajes", []),
         "comentario_narrativo": actual_feedback.get("comentario_narrativo", ""),
-        "resumen_para_moodle": actual_feedback.get("resumen_para_moodle", ""),
         # Hybrid-specific fields
         "manual_scores": json_data.get("manual_scores", {}),
         "manual_comments": json_data.get("manual_comments", {}),
@@ -525,7 +523,6 @@ def generate_hybrid_pdf_from_feedback(
     - Header with course, unit, activity info
     - Full rubric table (auto + manual scores with visual distinction)
     - Narrative feedback
-    - Resumen para Moodle
     - Tutor manual comments
 
     Args:
@@ -645,13 +642,6 @@ def generate_pdf_from_feedback(
 
     # 1. Rubric scores table (without total)
     elements.extend(_build_scores_section_no_total(feedback["puntajes"], styles))
-
-    # 2. Resumen content (no header, no grade)
-    resumen = feedback.get("resumen_para_moodle", "")
-    if resumen:
-        resumen = _remove_score_from_resumen(resumen)
-        resumen = resumen.strip().replace("\n", " ")
-        elements.append(Paragraph(resumen, styles["Normal"]))
 
     # Create PDF
     doc = SimpleDocTemplate(

@@ -144,25 +144,57 @@ def extract_text_from_file(file_path: Path) -> str:
     return result.text
 
 
-def read_raw_text(file_path: Path) -> str:
+def extract_tables_from_file(file_path: Path) -> list:
     """
-    Lee un archivo como texto plano.
+    Extrae tablas de un archivo DOCX o PDF.
 
     Args:
         file_path: Ruta al archivo
 
     Returns:
-        Contenido del archivo
+        Lista de DataFrames de pandas, uno por tabla encontrada
     """
-    encodings = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
+    from src.teacher_automation.processing.submissions import extract_tables_from_submission
 
-    for encoding in encodings:
-        try:
-            return file_path.read_text(encoding=encoding)
-        except UnicodeDecodeError:
-            continue
+    return extract_tables_from_submission(file_path)
 
-    return file_path.read_text(encoding="utf-8", errors="replace")
+
+def build_table_injection_context(tables: list, activity_id: str) -> str:
+    """
+    Construye el contexto de inyección de tablas para el prompt.
+
+    Solo se inyectan tablas para las actividades 3.1 y 3.2 que requieren
+    evaluación de datos estructurados (Tabla de Operacionalización, etc.).
+
+    Args:
+        tables: Lista de DataFrames extraídos del documento
+        activity_id: ID de la actividad (ej: "3.1", "3.2")
+
+    Returns:
+        Cadena de contexto para inyectar en el prompt, o cadena vacía si
+        la actividad no requiere inyección de tablas.
+    """
+    # Solo inyectar tablas para actividades que lo requieran
+    ACTIVITIES_REQUIRING_TABLES = {"3.1", "3.2"}
+
+    if activity_id not in ACTIVITIES_REQUIRING_TABLES:
+        return ""
+
+    if not tables:
+        return ""
+
+    from src.teacher_automation.processing.submissions import dataframes_to_markdown_context
+
+    table_markdown = dataframes_to_markdown_context(tables, activity_id)
+
+    return (
+        f"CONTEXTO ADICIONAL DE LA ACTIVIDAD: Actividad {activity_id}\n\n"
+        f"El estudiante ha presentado la siguiente información estructurada (tablas) "
+        f"extraída de su documento:\n"
+        f"{table_markdown}\n\n"
+        f"Asegúrate de evaluar la coherencia de estos datos estructurados con las "
+        f"instrucciones y el resto del texto.\n\n"
+    )
 
 
 def load_rubric(rubric_path: Path) -> dict:
@@ -246,7 +278,6 @@ def process_submission(
     prompt_path: Path,
     yaml_description: str,
     activity_instructions: str,
-    extraer_texto: bool,
     output_dir: Path,
     model: str,
     course: str,
@@ -262,7 +293,6 @@ def process_submission(
         prompt_path: Ruta al prompt
         yaml_description: Descripción de la actividad desde el YAML
         activity_instructions: Instrucciones de la actividad ingresadas por el tutor
-        extraer_texto: Si se debe extraer texto (PDF/DOCX) o leer directo
         output_dir: Directorio de salida
         model: Modelo de Claude a usar
         course: Código del curso
@@ -276,11 +306,8 @@ def process_submission(
 
     student_name = extract_student_name_from_file(file_path)
 
-    # Extraer o leer texto
-    if extraer_texto:
-        student_text = extract_text_from_file(file_path)
-    else:
-        student_text = read_raw_text(file_path)
+    # Extraer texto del documento
+    student_text = extract_text_from_file(file_path)
 
     if not student_text.strip():
         return {
@@ -545,7 +572,6 @@ especificado y generará retroalimentación para cada uno.
 
     # 9. Obtener descripción de la actividad desde YAML
     yaml_description = activity.get("titulo", "") or activity.get("descripcion", "")
-    extraer_texto = activity.get("extraer_texto", False)
 
     # 10. Preparar submissions para batch processing
     print("\n" + "=" * 60)
@@ -560,10 +586,7 @@ especificado y generará retroalimentación para cada uno.
         print(f"[{i}/{len(submission_files)}] {student_name}...", end=" ")
 
         try:
-            if extraer_texto:
-                student_text = extract_text_from_file(file_path)
-            else:
-                student_text = read_raw_text(file_path)
+            student_text = extract_text_from_file(file_path)
 
             if not student_text.strip():
                 print("⚠ vacío")
@@ -574,11 +597,33 @@ especificado y generará retroalimentación para cada uno.
                 })
                 continue
 
+            # Extract tables for debug logging and potential injection
+            tables = []
+            try:
+                tables = extract_tables_from_file(file_path)
+                if args.debug and tables:
+                    print(f"[{len(tables)} tablas] ", end="")
+            except Exception as table_err:
+                if args.debug:
+                    print(f"[tablas: {table_err}] ", end="")
+
+            # Build table injection context for activities 3.1 and 3.2
+            table_context = build_table_injection_context(tables, args.activity)
+
+            # Prepend table context to student text if applicable
+            if table_context:
+                final_text = table_context + student_text
+                if args.debug:
+                    print("[+tabla_ctx] ", end="")
+            else:
+                final_text = student_text
+
             submissions.append({
                 "id": student_name,
-                "text": student_text,
+                "text": final_text,
                 "estudiante": student_name,
                 "archivo_original": file_path.name,
+                "tables": tables,  # Include extracted tables in submission data
             })
             print("✓")
 
@@ -915,6 +960,20 @@ especificado y generará retroalimentación para cada uno.
 
         pdf_successful = sum(1 for r in pdf_results if r["success"])
         print(f"\n✓ {pdf_successful} PDFs generados en: {pdf_output_dir}")
+
+    # 13. Generar CSV de calificaciones
+    if successful > 0:
+        print("\n" + "=" * 60)
+        print("GENERANDO CSV DE CALIFICACIONES...")
+        print("=" * 60)
+
+        from generate_grades_summary import generate_summary
+
+        try:
+            csv_path = generate_summary(output_dir)
+            print(f"✓ CSV generado: {csv_path}")
+        except Exception as e:
+            print(f"✗ Error generando CSV: {e}")
 
     print("=" * 60)
 

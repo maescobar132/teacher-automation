@@ -214,3 +214,4 @@ outputs_feedback/
 !package-lock.json
 !tsconfig.json
 !pyproject.json
+!src/teacher_automation/config/rubrics/*.json

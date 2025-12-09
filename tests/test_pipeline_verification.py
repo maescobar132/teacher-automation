@@ -35,7 +35,6 @@ REQUIRED_METADATA_FIELDS = [
 REQUIRED_RETROALIMENTACION_FIELDS = [
     "puntajes",
     "comentario_narrativo",
-    "resumen_para_moodle",
 ]
 
 
@@ -92,7 +91,7 @@ def assert_json_has_required_fields(json_obj: dict) -> list[str]:
     Check if a JSON object has all required fields.
 
     The JSON structure may have two formats:
-    1. Flat: retroalimentacion contains puntajes, comentario_narrativo, resumen_para_moodle directly
+    1. Flat: retroalimentacion contains puntajes, comentario_narrativo directly
     2. Nested: retroalimentacion contains another retroalimentacion with the actual feedback
 
     Args:

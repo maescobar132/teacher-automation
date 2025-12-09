@@ -15,7 +15,6 @@ from .api import (
     ForumDiscussion,
     create_api_client,
 )
-from .client import MoodleClient
 from .models import Assignment, Submission, SubmissionFile, Student
 
 __all__ = [
@@ -27,8 +26,6 @@ __all__ = [
     "MoodleAuthError",
     "MoodleNotFoundError",
     "MoodleValidationError",
-    # Legacy client
-    "MoodleClient",
     # Models
     "Assignment",
     "Submission",
