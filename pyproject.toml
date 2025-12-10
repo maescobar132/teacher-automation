@@ -33,7 +33,8 @@ changelog = "https://github.com/maescobar132/teacher_automation/blob/master/chan
 homepage = "https://github.com/maescobar132/teacher_automation"
 
 [project.scripts]
-teacher_automation = "teacher_automation.cli:app"
+# CLI entry point (to be implemented)
+# teacher_automation = "src.cli:app"
 
 [tool.ty]
 # All rules are enabled as "error" by default; no need to specify unless overriding.

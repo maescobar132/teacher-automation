@@ -2,10 +2,10 @@
 
 from dataclasses import dataclass, field
 
-from ..config.models import GradingConfig
-from ..prompts.templates import PromptTemplate
-from ..rubrics.models import Rubric
-from ..utils.logging import get_logger
+from src.config.models import GradingConfig
+from src.prompts.templates import PromptTemplate
+from src.rubrics.models import Rubric
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -6,10 +6,10 @@ Generates PDF feedback documents from JSON feedback files.
 Uses reportlab for PDF generation.
 
 Usage as module:
-    python -m src.teacher_automation.output.pdf_generator --input-dir <dir> --output-dir <dir>
+    python -m src.output.pdf_generator --input-dir <dir> --output-dir <dir>
 
 Usage from code:
-    from src.teacher_automation.output.pdf_generator import generate_pdf_from_feedback
+    from src.output.pdf_generator import generate_pdf_from_feedback
     generate_pdf_from_feedback(json_path, output_path)
 """
 
@@ -38,7 +38,7 @@ except ImportError:
     print("Error: reportlab is required. Install with: pip install reportlab")
     sys.exit(1)
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

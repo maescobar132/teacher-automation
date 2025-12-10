@@ -46,7 +46,6 @@ def load_course_config(course_id: str) -> dict:
     config_path = (
         Path(__file__).parent
         / "src"
-        / "teacher_automation"
         / "config"
         / "courses"
         / f"{course_id}.yml"
@@ -138,7 +137,7 @@ def extract_text_from_file(file_path: Path) -> str:
     Returns:
         Texto extraído
     """
-    from src.teacher_automation.processing.parser import extract_text
+    from src.processing.parser import extract_text
 
     result = extract_text(file_path)
     return result.text
@@ -154,7 +153,7 @@ def extract_tables_from_file(file_path: Path) -> list:
     Returns:
         Lista de DataFrames de pandas, uno por tabla encontrada
     """
-    from src.teacher_automation.processing.submissions import extract_tables_from_submission
+    from src.processing.submissions import extract_tables_from_submission
 
     return extract_tables_from_submission(file_path)
 
@@ -183,7 +182,7 @@ def build_table_injection_context(tables: list, activity_id: str) -> str:
     if not tables:
         return ""
 
-    from src.teacher_automation.processing.submissions import dataframes_to_markdown_context
+    from src.processing.submissions import dataframes_to_markdown_context
 
     table_markdown = dataframes_to_markdown_context(tables, activity_id)
 
@@ -302,7 +301,7 @@ def process_submission(
     Returns:
         Diccionario con resultado del procesamiento
     """
-    from src.teacher_automation.grading.generate_feedback import generate_feedback_for_text
+    from src.grading.generate_feedback import generate_feedback_for_text
 
     student_name = extract_student_name_from_file(file_path)
 
@@ -415,6 +414,12 @@ especificado y generará retroalimentación para cada uno.
         "--hybrid",
         action="store_true",
         help="Modo híbrido: evaluación AI + revisión manual de formato",
+    )
+    parser.add_argument(
+        "--manual-criteria",
+        nargs="+",
+        default=None,
+        help="Lista de nombres de criterios a evaluar manualmente. Si se usa, SOBRESCRIBE los criterios manuales por defecto.",
     )
 
     args = parser.parse_args()
@@ -534,7 +539,7 @@ especificado y generará retroalimentación para cada uno.
         print("-" * 60)
 
         try:
-            from src.teacher_automation.processing.filenames import clean_and_rename_files
+            from src.processing.filenames import clean_and_rename_files
 
             renamed = clean_and_rename_files(submissions_dir)
             if renamed:
@@ -649,8 +654,8 @@ especificado y generará retroalimentación para cada uno.
         print("MODO HÍBRIDO: AI + REVISIÓN MANUAL")
         print("=" * 60)
 
-        from src.teacher_automation.grading.generate_feedback import generate_feedback_batch
-        from src.teacher_automation.manual.manual_review import (
+        from src.grading.generate_feedback import generate_feedback_batch
+        from src.manual.manual_review import (
             convert_to_pdf,
             open_pdf_viewer,
             prompt_manual_scores,
@@ -663,13 +668,37 @@ especificado y generará retroalimentación para cada uno.
 
         # Load rubric for manual scoring reference
         rubric = load_rubric(rubric_path)
-        format_criteria = get_format_criteria()
+
+        # --- LÓGICA DE CARGA DINÁMICA DE CRITERIOS MANUALES ---
+        if args.manual_criteria:
+            # Caso 1: Usar la lista de criterios provista por el usuario (CLI)
+            manual_criteria_to_check = args.manual_criteria
+            print(f"\n[INFO] Usando criterios manuales explícitos (CLI): {manual_criteria_to_check}")
+        else:
+            # Caso 2: Usar la lista de criterios por defecto (fallback)
+            manual_criteria_to_check = get_format_criteria()
+            print(f"\n[INFO] Usando criterios manuales por defecto: {manual_criteria_to_check}")
+
+        # Criterios automáticos (siempre desde defaults)
         auto_criteria = get_auto_full_score_criteria()
 
-        # Check which format criteria exist in the rubric
+        # Check which criteria exist in the rubric
         rubric_criteria_names = [c.get("nombre", "") for c in rubric.get("criterios", [])]
-        valid_format_criteria = [c for c in format_criteria if c in rubric_criteria_names]
+        valid_format_criteria = [c for c in manual_criteria_to_check if c in rubric_criteria_names]
         valid_auto_criteria = [c for c in auto_criteria if c in rubric_criteria_names]
+
+        # Warn about criteria not found in rubric
+        missing_criteria = [c for c in manual_criteria_to_check if c not in rubric_criteria_names]
+        if missing_criteria:
+            print(f"\n⚠ ADVERTENCIA: Criterios no encontrados en rúbrica: {missing_criteria}")
+            print(f"   Criterios disponibles: {rubric_criteria_names}")
+
+        # If user explicitly provided criteria via CLI but none are valid, fail early
+        if args.manual_criteria and not valid_format_criteria:
+            print(f"\n✗ ERROR: Ninguno de los criterios especificados existe en la rúbrica.")
+            print(f"   Criterios solicitados: {args.manual_criteria}")
+            print(f"   Criterios disponibles: {rubric_criteria_names}")
+            sys.exit(1)
 
         if not valid_format_criteria and not valid_auto_criteria:
             print("\n⚠ ADVERTENCIA: No se encontraron criterios de formato en la rúbrica.")
@@ -831,7 +860,7 @@ especificado y generará retroalimentación para cada uno.
         print("GENERANDO RETROALIMENTACIÓN (con prompt caching)...")
         print("=" * 60)
 
-        from src.teacher_automation.grading.generate_feedback import generate_feedback_batch
+        from src.grading.generate_feedback import generate_feedback_batch
 
         batch_results = generate_feedback_batch(
             submissions=submissions,
@@ -933,7 +962,7 @@ especificado y generará retroalimentación para cada uno.
 
         if args.hybrid:
             # Use hybrid PDF generator for full feedback documents
-            from src.teacher_automation.output.pdf_generator import generate_hybrid_pdf_from_feedback
+            from src.output.pdf_generator import generate_hybrid_pdf_from_feedback
 
             pdf_results = []
             json_files = list(output_dir.glob("*.json"))
@@ -950,7 +979,7 @@ especificado y generará retroalimentación para cada uno.
                     print(f"  ✗ {json_path.name}: {e}")
         else:
             # Use standard PDF generator
-            from src.teacher_automation.output.pdf_generator import generate_pdfs_from_directory
+            from src.output.pdf_generator import generate_pdfs_from_directory
 
             pdf_results = generate_pdfs_from_directory(
                 input_dir=output_dir,

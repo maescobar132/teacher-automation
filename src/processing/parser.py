@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 from .filetypes import detect_filetype, FileCategory, PDF, DOCX, DOC, TXT
 
 logger = get_logger(__name__)

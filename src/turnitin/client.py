@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 from .models import SimilarityReport
 
 logger = get_logger(__name__)

@@ -10,7 +10,7 @@ from enum import Enum
 from pathlib import Path
 from typing import BinaryIO
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

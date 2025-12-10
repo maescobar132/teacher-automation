@@ -15,7 +15,7 @@ from typing import Any
 
 import os
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -1222,7 +1222,7 @@ def _extract_text_from_original(original_files_dir: Path, archivo_original: str)
         ValueError: If text extraction fails
     """
     # Import here to avoid circular imports
-    from ..processing.parser import extract_text
+    from src.processing.parser import extract_text
 
     # Search for the file
     possible_paths = [

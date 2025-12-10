@@ -8,8 +8,8 @@ unidades:
         titulo: "Propuesta de objetivos"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_propuesta_objetivos.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_propuesta_objetivos.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
 
         instrucciones: |
           Actividad 1.1 – Propuesta de objetivos del protocolo de investigación.
@@ -49,8 +49,8 @@ unidades:
         titulo: "Foro: Muestreos cuantitativos y cualitativos"
         tipo: foro
         extraer_texto: false
-        rubrica: "src/teacher_automation/config/rubrics/rubric_foros_general.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_foro.txt"
+        rubrica: "src/config/rubrics/rubric_foros_general.json"
+        prompt: "src/config/prompts/retroalimentacion_foro.txt"
 
         instrucciones: |
           En este foro distinguirás los tipos de muestreo según el enfoque metodológico.
@@ -72,8 +72,8 @@ unidades:
         titulo: "Posible muestra y escenario de aplicación"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_escrito_uca_ead.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
 
         instrucciones: |
           Esta actividad busca definir quiénes podrían ser tus participantes y en qué contexto
@@ -102,8 +102,8 @@ unidades:
         titulo: "Foro: Identificación de instrumentos en la investigación"
         tipo: foro
         extraer_texto: false
-        rubrica: "src/teacher_automation/config/rubrics/rubric_foros_general.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_foro.txt"
+        rubrica: "src/config/rubrics/rubric_foros_general.json"
+        prompt: "src/config/prompts/retroalimentacion_foro.txt"
         instrucciones: |
           En este foro, los estudiantes deben identificar y comentar instrumentos
           de recolección de información utilizados en investigaciones previas,
@@ -114,8 +114,8 @@ unidades:
         titulo: "Selección y/o diseño de instrumentos para recabar información"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_escrito_uca_ead.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Introducción
           Esta actividad es fundamental dentro de tu protocolo de investigación, pues te permitirá
@@ -169,8 +169,8 @@ unidades:
         titulo: "Tabla de operacionalización"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_3.1_tabla_operacionalizacion.json" # Ruta de rúbrica corregida
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_3.1_tabla_operacionalizacion.json" # Ruta de rúbrica corregida
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Desarrollo de protocolo de investigación: Tabla de operacionalización
           Esta actividad te permitirá comprobar la coherencia interna de tu protocolo y verificar que las variables (enfoque cuantitativo) o categorías (enfoque cualitativo) estén correctamente definidas y articuladas con los elementos que serán medidos o analizados.
@@ -197,8 +197,8 @@ unidades:
         titulo: "Diseño del estudio"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_3.2_tabla_diseno_investigacion.json" # Ruta de rúbrica corregida
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_3.2_tabla_diseno_investigacion.json" # Ruta de rúbrica corregida
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Desarrollo de protocolo de investigación: Diseño del estudio
           Definir el diseño metodológico es esencial para respaldar tus decisiones de investigación y asegurar que el estudio responda de manera coherente a los objetivos planteados.

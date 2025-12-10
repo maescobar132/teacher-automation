@@ -14,7 +14,7 @@ from typing import Any
 
 import httpx
 
-from ..utils.logging import get_logger
+from src.utils.logging import get_logger
 from .models import Assignment, Submission, SubmissionFile
 
 logger = get_logger(__name__)
