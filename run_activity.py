@@ -401,9 +401,21 @@ especificado y generará retroalimentación para cada uno.
         help="Limpiar y renombrar archivos antes de procesar",
     )
     parser.add_argument(
+        "--provider",
+        default="deepseek",
+        choices=["anthropic", "deepseek"],
+        help="Proveedor de LLM (default: deepseek)",
+    )
+    parser.add_argument(
         "--model",
-        default="claude-sonnet-4-20250514",
-        help="Modelo de Claude (default: claude-sonnet-4-20250514)",
+        default=None,
+        help="Modelo específico (si no se especifica, usa el default del proveedor)",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=1.0,
+        help="Temperatura para generación de retroalimentación (default: 1.0)",
     )
     parser.add_argument(
         "--debug",
@@ -421,6 +433,11 @@ especificado y generará retroalimentación para cada uno.
         default=None,
         help="Lista de nombres de criterios a evaluar manualmente. Si se usa, SOBRESCRIBE los criterios manuales por defecto.",
     )
+    parser.add_argument(
+        "--presentation",
+        action="store_true",
+        help="Modo presentación: calificación interactiva manual de presentaciones PPT",
+    )
 
     args = parser.parse_args()
 
@@ -429,6 +446,8 @@ especificado y generará retroalimentación para cada uno.
     print("GENERADOR DE RETROALIMENTACIÓN FORMATIVA")
     if args.hybrid:
         print(">>> MODO HÍBRIDO: Evaluación AI + Manual <<<")
+    if args.presentation:
+        print(">>> MODO PRESENTACIÓN: Calificación Interactiva Manual <<<")
     print("=" * 60)
     print(f"Curso: {args.course}")
     print(f"Unidad: {args.unit}")
@@ -436,7 +455,316 @@ especificado y generará retroalimentación para cada uno.
     print(f"Directorio: {args.dir}")
     if args.hybrid:
         print(f"Modo: HÍBRIDO (revisión manual de formato)")
+    if args.presentation:
+        print(f"Modo: PRESENTACIÓN (calificación interactiva)")
     print("=" * 60)
+
+    # PRESENTATION MODE - Special workflow
+    if args.presentation:
+        from src.grading.grade_presentations import (
+            batch_convert_presentations,
+            load_rubric,
+            load_prompt,
+            load_progress,
+            save_progress,
+            open_pdf,
+            grade_criterion_interactive,
+            generate_feedback_with_llm,
+            preview_and_edit_feedback,
+        )
+        from src.processing.filenames import extract_student_name, clean_name_no_swap
+
+        project_root = Path(__file__).parent
+
+        # Load configuration
+        try:
+            config = load_course_config(args.course)
+            print(f"\n✓ Configuración cargada: {config.get('nombre', args.course)}")
+        except FileNotFoundError as e:
+            print(f"\n✗ Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Find activity
+        activity = find_activity(config, args.unit, args.activity)
+        if not activity:
+            print(
+                f"\n✗ Error: No se encontró la actividad {args.activity} "
+                f"en la unidad {args.unit}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        # Get rubric and prompt paths
+        rubric_path = project_root / activity.get("rubrica", "")
+        prompt_path = project_root / activity.get("prompt", "")
+
+        if not rubric_path.exists():
+            print(f"\n✗ Error: No se encontró la rúbrica: {rubric_path}", file=sys.stderr)
+            sys.exit(1)
+
+        if not prompt_path.exists():
+            print(f"\n✗ Error: No se encontró el prompt: {prompt_path}", file=sys.stderr)
+            sys.exit(1)
+
+        # Load rubric and prompt
+        rubric = load_rubric(rubric_path)
+        prompt_template = load_prompt(prompt_path)
+
+        print(f"✓ Rúbrica: {rubric_path.name}")
+        print(f"✓ Prompt: {prompt_path.name}")
+
+        # Setup directories
+        presentations_dir = Path(args.dir).expanduser().resolve()
+        if not presentations_dir.exists() or not presentations_dir.is_dir():
+            print(f"\n✗ Error: Directorio no encontrado: {presentations_dir}", file=sys.stderr)
+            sys.exit(1)
+
+        output_dir = project_root / "outputs" / args.course / f"unidad_{args.unit}" / f"actividad_{args.activity}"
+        pdf_dir = output_dir / "pdfs"
+        progress_path = output_dir / ".progress.json"
+
+        # Step 1: Batch convert PPTX to PDF
+        print("\n" + "=" * 60)
+        print("PASO 1: CONVERSIÓN PPTX → PDF")
+        print("=" * 60)
+
+        conversions = batch_convert_presentations(presentations_dir, pdf_dir)
+        if not conversions:
+            print(f"\n✗ Error: No se encontraron presentaciones para convertir", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"\n✓ {len(conversions)} presentaciones procesadas")
+
+        # Step 2: Interactive grading
+        print("\n" + "=" * 60)
+        print("PASO 2: CALIFICACIÓN INTERACTIVA")
+        print("=" * 60)
+
+        progress = load_progress(progress_path)
+        completed_students = set(progress.get("completed", []))
+        all_scores = progress.get("scores", {})
+
+        # Use PDFs from conversions (includes both converted and existing PDFs)
+        pdf_files = sorted([pdf_path for _, pdf_path in conversions])
+        pending_pdfs = [p for p in pdf_files if p.stem not in completed_students]
+
+        if not pending_pdfs:
+            print("\n✓ Todos los estudiantes ya han sido calificados")
+        else:
+            print(f"\nPendientes: {len(pending_pdfs)}/{len(pdf_files)}")
+            print("(Presiona Ctrl+C en cualquier momento para guardar y salir)\n")
+
+            try:
+                for i, pdf_path in enumerate(pending_pdfs, 1):
+                    student_id = pdf_path.stem
+
+                    # Extract student name from filename
+                    # Format: Firstname_Lastname.pdf (already in correct order, no swap needed)
+                    raw_name = extract_student_name(pdf_path.name)
+                    cleaned_name = clean_name_no_swap(raw_name)
+                    student_display = cleaned_name.replace('_', ' ')
+
+                    print(f"\n{'=' * 70}")
+                    print(f"ESTUDIANTE [{i + len(completed_students)}/{len(pdf_files)}]: {student_display}")
+                    print(f"Archivo: {pdf_path.name}")
+                    print(f"{'=' * 70}")
+
+                    # Open PDF
+                    try:
+                        open_pdf(pdf_path)
+                        print("✓ PDF abierto (puedes revisar mientras calificas)")
+                        print("  Cierra el visor cuando termines con este estudiante\n")
+                    except Exception as e:
+                        print(f"⚠ No se pudo abrir PDF: {e}")
+                        print("  Continúa con la calificación...\n")
+
+                    # Extract text from presentation for LLM context
+                    presentation_text = ""
+                    try:
+                        from src.processing.parser import extract_text_from_pdf
+                        result = extract_text_from_pdf(pdf_path)
+                        presentation_text = result.text
+                        logger.info(f"Extraído {len(presentation_text)} caracteres de {pdf_path.name}")
+                    except Exception as e:
+                        logger.warning(f"No se pudo extraer texto de {pdf_path.name}: {e}")
+                        presentation_text = ""
+
+                    # Grade each criterion
+                    student_scores = {}
+                    for criterio in rubric["criterios"]:
+                        criterio_name = criterio["nombre"]
+
+                        score, comment = grade_criterion_interactive(
+                            criterio_name=criterio_name,
+                            criterio_data=criterio,
+                            student_num=i + len(completed_students),
+                            total_students=len(pdf_files),
+                            student_name=student_display,
+                        )
+
+                        student_scores[criterio_name] = (score, comment)
+
+                    # Save scores and mark complete
+                    all_scores[student_id] = {
+                        "student_name": student_display,
+                        "scores": student_scores,
+                        "presentation_text": presentation_text,
+                    }
+                    completed_students.add(student_id)
+
+                    progress["completed"] = list(completed_students)
+                    progress["scores"] = all_scores
+                    save_progress(progress_path, progress)
+
+                    print(f"\n✓ Progreso guardado ({len(completed_students)}/{len(pdf_files)} completados)")
+
+            except (KeyboardInterrupt, EOFError):
+                print("\n\n⚠ Calificación interrumpida. Progreso guardado.")
+                print(f"   Completados: {len(completed_students)}/{len(pdf_files)}")
+                sys.exit(0)
+
+        # Step 3: Generate LLM feedback for all completed
+        print("\n" + "=" * 60)
+        print("PASO 3: GENERACIÓN DE RETROALIMENTACIÓN CON LLM")
+        print("=" * 60)
+
+        if not completed_students:
+            print("\n⚠ No hay estudiantes calificados para generar retroalimentación")
+            sys.exit(0)
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        for student_id in completed_students:
+            student_data = all_scores[student_id]
+            student_name = student_data["student_name"]
+            scores = student_data["scores"]
+            presentation_text = student_data.get("presentation_text", "")
+
+            # Check if JSON already exists
+            json_path = output_dir / f"{student_id}.json"
+            if json_path.exists():
+                print(f"  ⊘ {student_name} - ya existe JSON, omitiendo")
+                continue
+
+            print(f"\n{'=' * 70}")
+            print(f"Generando retroalimentación: {student_name}")
+            print(f"{'=' * 70}")
+
+            try:
+                # Generate feedback with LLM
+                feedback = generate_feedback_with_llm(
+                    student_name=student_name,
+                    rubric=rubric,
+                    scores=scores,
+                    prompt_template=prompt_template,
+                    presentation_text=presentation_text,
+                    provider=args.provider,
+                    model=args.model,
+                    temperature=args.temperature,
+                )
+
+                # Preview and edit
+                feedback = preview_and_edit_feedback(feedback, student_name)
+
+                # Build final JSON structure
+                from datetime import datetime
+
+                output_data = {
+                    "metadata": {
+                        "estudiante": student_name,
+                        "archivo_original": f"{student_id}.pdf",
+                        "fecha_procesamiento": datetime.now().isoformat(),
+                        "curso": args.course,
+                        "unidad": args.unit,
+                        "actividad": args.activity,
+                        "rubrica_usada": rubric_path.name,
+                        "descripcion_yaml": activity.get("titulo", ""),
+                        "activity_instructions": activity.get("instrucciones", ""),
+                    },
+                    "retroalimentacion": feedback,
+                }
+
+                # Save JSON
+                with json_path.open("w", encoding="utf-8") as f:
+                    json.dump(output_data, f, ensure_ascii=False, indent=2)
+
+                print(f"\n✓ JSON guardado: {json_path.name}")
+
+            except Exception as e:
+                print(f"\n✗ Error generando retroalimentación: {e}")
+                if args.debug:
+                    import traceback
+                    traceback.print_exc()
+
+        # Generate CSV with grades
+        try:
+            import csv
+            json_files = sorted([f for f in output_dir.glob("*.json") if f.name != ".progress.json"])
+
+            if json_files:
+                # Collect all unique criteria
+                all_criterios = []
+                for json_file in json_files:
+                    with open(json_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    puntajes = data.get("retroalimentacion", {}).get("puntajes", [])
+                    for p in puntajes:
+                        criterio = p.get("criterio", "")
+                        if criterio and criterio not in all_criterios:
+                            all_criterios.append(criterio)
+
+                # Build fieldnames and data
+                fieldnames = ["Estudiante", "Archivo"] + all_criterios + ["Total", "Porcentaje"]
+                rows = []
+
+                for json_file in json_files:
+                    with open(json_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+
+                    metadata = data.get("metadata", {})
+                    puntajes = data.get("retroalimentacion", {}).get("puntajes", [])
+                    estudiante = metadata.get("estudiante", json_file.stem)
+
+                    row = {field: "" for field in fieldnames}
+                    row["Estudiante"] = estudiante.replace("_", " ")
+                    row["Archivo"] = metadata.get("archivo_original", json_file.name)
+
+                    total = 0
+                    maximo = 0
+                    for p in puntajes:
+                        criterio = p.get("criterio", "")
+                        puntaje = p.get("puntaje", 0)
+                        max_pts = p.get("maximo", 0)
+                        if criterio in row:
+                            row[criterio] = f"{puntaje}/{max_pts}"
+                        total += puntaje
+                        maximo += max_pts
+
+                    row["Total"] = f"{total}/{maximo}"
+                    row["Porcentaje"] = f"{(total/maximo*100):.1f}%" if maximo > 0 else "0%"
+                    rows.append(row)
+
+                # Write CSV
+                csv_path = output_dir / "calificaciones.csv"
+                with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(rows)
+
+                print(f"\n✓ CSV generado: {csv_path.name}")
+        except Exception as e:
+            logger.warning(f"No se pudo generar CSV: {e}")
+
+        print("\n" + "=" * 60)
+        print("CALIFICACIÓN COMPLETADA")
+        print("=" * 60)
+        print(f"Total estudiantes: {len(completed_students)}")
+        print(f"JSONs generados en: {output_dir}")
+        print("\nPara generar PDFs, ejecuta:")
+        print(f"  python -m src.output.pdf_generator --input-dir {output_dir}")
+        print("=" * 60)
+
+        sys.exit(0)
 
     # 1. Validar directorio o extraer ZIP
     input_path = Path(args.dir).expanduser().resolve()
@@ -737,13 +1065,24 @@ especificado y generará retroalimentación para cada uno.
                     print("\n1. Abriendo documento para revisión...")
                     if original_file and original_file.exists():
                         try:
-                            pdf_path = convert_to_pdf(original_file)
-                            print(f"   PDF: {pdf_path.name}")
-                            print("   >>> Revise el documento y cierre el visor cuando termine <<<")
-                            open_pdf_viewer(pdf_path, wait=True)
+                            # If DOCX, convert to PDF first
+                            if original_file.suffix.lower() in ['.docx', '.doc']:
+                                pdf_path = convert_to_pdf(original_file)
+                                print(f"   Conversión exitosa: {pdf_path.name}")
+                                open_pdf_viewer(pdf_path, wait=True)
+                            else:
+                                # Already a PDF, open directly
+                                open_pdf_viewer(original_file, wait=True)
                         except Exception as e:
-                            print(f"   ⚠ No se pudo abrir PDF: {e}")
-                            print("   Continuando con evaluación manual sin visor...")
+                            print(f"   ⚠ No se pudo convertir/abrir PDF: {e}")
+                            print(f"   Intentando abrir documento original con visor por defecto...")
+                            try:
+                                # Fallback: open original document with default application
+                                from src.manual.manual_review import open_document
+                                open_document(original_file, wait=True)
+                            except Exception as e2:
+                                print(f"   ⚠ No se pudo abrir documento: {e2}")
+                                print("   Continuando con evaluación manual sin visor...")
                     else:
                         print(f"   ⚠ Archivo original no encontrado: {archivo_original}")
 
@@ -786,8 +1125,10 @@ especificado y generará retroalimentación para cada uno.
                         actividad=args.activity,
                         activity_instructions=activity_instructions,
                         descripcion_yaml=yaml_description,
+                        provider=args.provider,
                         model=args.model,
                         output_base_path=None,  # Don't save yet
+                        temperature=args.temperature,
                         manual_criteria=all_manual_criteria,
                     )
 
@@ -871,8 +1212,10 @@ especificado y generará retroalimentación para cada uno.
             actividad=args.activity,
             activity_instructions=activity_instructions,
             descripcion_yaml=yaml_description,
+            provider=args.provider,
             model=args.model,
             output_base_path=project_root / "outputs",
+            temperature=args.temperature,
         )
 
         # Convert batch results to expected format

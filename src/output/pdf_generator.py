@@ -43,6 +43,32 @@ from src.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _get_course_name(curso_code: str) -> str:
+    """
+    Get the full course name from the course config file.
+
+    Args:
+        curso_code: Course code (e.g., "FI09")
+
+    Returns:
+        Full course name, or the course code if not found
+    """
+    try:
+        import yaml
+        config_path = Path(__file__).parent.parent / "config" / "courses" / f"{curso_code}.yml"
+
+        if not config_path.exists():
+            return curso_code
+
+        with config_path.open("r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+
+        return config.get("nombre", curso_code)
+    except Exception as e:
+        logger.warning(f"Could not load course name for {curso_code}: {e}")
+        return curso_code
+
+
 def _get_styles() -> dict[str, ParagraphStyle]:
     """Get custom paragraph styles for the PDF."""
     styles = getSampleStyleSheet()
@@ -226,10 +252,11 @@ def _build_scores_section(
             Paragraph(justificacion, styles["Small"]),
         ])
 
-    # Add total row
+    # Add total row with percentage
+    percentage = (total_obtenido / total_maximo * 100) if total_maximo > 0 else 0
     table_data.append([
         Paragraph("<b>TOTAL</b>", styles["Small"]),
-        Paragraph(f"<b>{total_obtenido}/{total_maximo}</b>", styles["Small"]),
+        Paragraph(f"<b>{total_obtenido}/{total_maximo} ({percentage:.1f}%)</b>", styles["Small"]),
         Paragraph("", styles["Small"]),
     ])
 
@@ -423,10 +450,11 @@ def _build_hybrid_scores_section(
             Paragraph(justificacion, styles["Small"]),
         ])
 
-    # Add total row
+    # Add total row with percentage
+    percentage = (final_total / final_maximo * 100) if final_maximo > 0 else 0
     table_data.append([
         Paragraph("<b>TOTAL</b>", styles["Small"]),
-        Paragraph(f"<b>{final_total}/{final_maximo}</b>", styles["Small"]),
+        Paragraph(f"<b>{final_total}/{final_maximo} ({percentage:.1f}%)</b>", styles["Small"]),
         Paragraph("", styles["Small"]),
     ])
 
@@ -579,7 +607,11 @@ def generate_hybrid_pdf_from_feedback(
         styles
     ))
 
-    # Create PDF
+    # Get course name for PDF metadata
+    curso_code = feedback["metadata"].get("curso", "")
+    course_name = _get_course_name(curso_code) if curso_code else "Curso"
+
+    # Create PDF with metadata
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=letter,
@@ -587,6 +619,9 @@ def generate_hybrid_pdf_from_feedback(
         leftMargin=0.75 * inch,
         topMargin=0.75 * inch,
         bottomMargin=0.75 * inch,
+        title="Retroalimentación",
+        author="Marco Escobar",
+        subject=course_name,
     )
 
     doc.build(elements)
@@ -643,7 +678,11 @@ def generate_pdf_from_feedback(
     # 1. Rubric scores table (without total)
     elements.extend(_build_scores_section_no_total(feedback["puntajes"], styles))
 
-    # Create PDF
+    # Get course name for PDF metadata
+    curso_code = feedback["metadata"].get("curso", "")
+    course_name = _get_course_name(curso_code) if curso_code else "Curso"
+
+    # Create PDF with metadata
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=letter,
@@ -651,6 +690,9 @@ def generate_pdf_from_feedback(
         leftMargin=0.75 * inch,
         topMargin=0.75 * inch,
         bottomMargin=0.75 * inch,
+        title="Retroalimentación",
+        author="Marco Escobar",
+        subject=course_name,
     )
 
     doc.build(elements)

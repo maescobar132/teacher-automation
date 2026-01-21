@@ -52,7 +52,7 @@ def to_title_case(text: str) -> str:
     """
     Convert words to Title Case.
     """
-    words = re.split(r"[\\s_]+", text)
+    words = re.split(r"[\s_]+", text)
     titled = [w.capitalize() for w in words if w]
     return " ".join(titled)
 
@@ -61,13 +61,19 @@ def extract_student_name(filename: str) -> str:
     """
     Extract full student name from filename.
 
-    Handles Moodle-style filenames like:
+    Handles patterns like:
+    - "actividad_PrimerApellido_PrimerNombre.pdf" -> "PrimerApellido_PrimerNombre"
+    - "Escrito_PrimerApellido_PrimerNombre.pdf" -> "PrimerApellido_PrimerNombre"
     - "Nombre Apellido_12345_assignsubmission_file_trabajo.pdf"
     - "Nombre_Apellido_12345_assignsubmission_file_trabajo.pdf"
 
     Returns the full name portion before any Moodle metadata.
     """
     stem = Path(filename).stem
+
+    # First, strip "actividad_" or "Escrito_" prefix if present (case-insensitive)
+    activity_prefix_pattern = r"^(actividad|escrito)[_\s]+"
+    stem = re.sub(activity_prefix_pattern, "", stem, flags=re.IGNORECASE)
 
     # Pattern to detect Moodle submission metadata
     # Looks for _NUMBER_assignsubmission or similar patterns
@@ -93,15 +99,78 @@ def extract_student_name(filename: str) -> str:
 def clean_name(raw_name: str) -> str:
     """
     Normalize student name safely.
+
+    For Spanish convention, if the input is "Apellido_Nombre" format,
+    this will swap to "Nombre_Apellido" for natural Spanish ordering.
+
+    Input: "Cardenas_Rubiela" -> Output: "Rubiela_Cardenas"
     """
+    # First normalize encoding
     name = fix_mojibake(raw_name)
     name = unicodedata.normalize("NFC", name)
-    name = to_ascii(name)
-    name = to_title_case(name)
-    name = name.replace(" ", "_")
-    name = re.sub(r"[^A-Za-z0-9_]", "", name)
-    name = re.sub(r"_+", "_", name)
-    return name.strip("_") or "Unknown"
+
+    # Split on underscore BEFORE other processing to preserve structure
+    parts = name.split("_")
+
+    # Clean each part individually
+    cleaned_parts = []
+    for part in parts:
+        if not part:
+            continue
+        # Remove accents and convert to ASCII
+        clean_part = to_ascii(part)
+        # Title case
+        clean_part = clean_part.capitalize()
+        # Remove non-alphanumeric
+        clean_part = re.sub(r"[^A-Za-z0-9]", "", clean_part)
+        if clean_part:
+            cleaned_parts.append(clean_part)
+
+    if not cleaned_parts:
+        return "Unknown"
+
+    # Spanish convention: swap from Apellido_Nombre to Nombre_Apellido
+    if len(cleaned_parts) == 2:
+        # Swap: [Apellido, Nombre] -> [Nombre, Apellido]
+        return f"{cleaned_parts[1]}_{cleaned_parts[0]}"
+
+    # If more or less than 2 parts, just join them
+    return "_".join(cleaned_parts)
+
+
+def clean_name_no_swap(raw_name: str) -> str:
+    """
+    Normalize student name without swapping order.
+
+    Use this for files already in Firstname_Lastname format (e.g., presentations).
+    Input: "Juan_Perez" -> Output: "Juan_Perez"
+    """
+    # First normalize encoding
+    name = fix_mojibake(raw_name)
+    name = unicodedata.normalize("NFC", name)
+
+    # Split on underscore BEFORE other processing to preserve structure
+    parts = name.split("_")
+
+    # Clean each part individually
+    cleaned_parts = []
+    for part in parts:
+        if not part:
+            continue
+        # Remove accents and convert to ASCII
+        clean_part = to_ascii(part)
+        # Title case
+        clean_part = clean_part.capitalize()
+        # Remove non-alphanumeric
+        clean_part = re.sub(r"[^A-Za-z0-9]", "", clean_part)
+        if clean_part:
+            cleaned_parts.append(clean_part)
+
+    if not cleaned_parts:
+        return "Unknown"
+
+    # NO SWAP - keep original order
+    return "_".join(cleaned_parts)
 
 
 def clean_filename(filename: str) -> str:

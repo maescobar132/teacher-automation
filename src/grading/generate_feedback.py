@@ -779,16 +779,16 @@ def _call_llm_with_caching(
 
     # Add manual scores if provided
     if manual_scores:
-        student_section_parts.append("EVALUACIÓN MANUAL DEL TUTOR (ya realizada, integrar en el comentario narrativo):")
+        student_section_parts.append("TUS OBSERVACIONES DIRECTAS SOBRE FORMATO/REFERENCIAS (ya realizadas por ti):")
         for criterio, data in manual_scores.items():
             score = data.get("puntaje", 0)
             maximo = data.get("maximo", 0)
             comment = data.get("comentario", "")
             student_section_parts.append(f"  - {criterio}: {score}/{maximo}")
             if comment:
-                student_section_parts.append(f"    Observación del tutor: {comment}")
+                student_section_parts.append(f"    Tu observación: {comment}")
         student_section_parts.append("")
-        student_section_parts.append("IMPORTANTE: Integra estas observaciones del tutor sobre formato/referencias en tu comentario narrativo de forma natural.")
+        student_section_parts.append("IMPORTANTE: Integra estas observaciones tuyas sobre formato/referencias en el comentario narrativo de forma natural, desde tu perspectiva como tutor (NO te refieras a 'el tutor' en tercera persona).")
         student_section_parts.append("")
 
     student_section_parts.append(f"Texto del estudiante:\n\"\"\"\n{student_text}\n\"\"\"")
@@ -827,6 +827,161 @@ def _call_llm_with_caching(
     return "".join(text_parts).strip()
 
 
+def _generate_batch_deepseek(
+    llm_client,
+    submissions: list[dict[str, Any]],
+    rubric: dict[str, Any],
+    prompt_template: str,
+    curso: str,
+    unidad: int,
+    actividad: str,
+    activity_instructions: str | None,
+    descripcion_yaml: str | None,
+    rubric_path: Path,
+    output_base_path: Path | None,
+    max_tokens: int,
+    manual_criteria: list[str] | None,
+) -> list[dict[str, Any]]:
+    """
+    Generate feedback for multiple submissions using DeepSeek.
+
+    Unlike Anthropic, DeepSeek doesn't support prompt caching, so we build
+    the full prompt for each student.
+
+    Returns:
+        List of result dictionaries with success/error status
+    """
+    from src.llm.client import extract_json_from_response
+    from datetime import datetime, timezone
+
+    # Build system prompt once (constant for all students)
+    system_prompt = _build_cached_prompt_prefix(
+        prompt_template=prompt_template,
+        rubric=rubric,
+        activity_instructions=activity_instructions,
+        descripcion_yaml=descripcion_yaml,
+        manual_criteria=manual_criteria,
+    )
+
+    results = []
+
+    for i, submission in enumerate(submissions, 1):
+        submission_id = submission.get("id", "unknown")
+        student_text = submission.get("text", "")
+        estudiante = submission.get("estudiante", str(submission_id))
+        archivo_original = submission.get("archivo_original", "unknown")
+        manual_scores = submission.get("manual_scores")
+
+        logger.info(f"[{i}/{len(submissions)}] Procesando: {estudiante}")
+
+        try:
+            # Extract first name from estudiante for personalized feedback
+            # After filename processing, estudiante is in Spanish format: "Firstname_Lastname"
+            parts = estudiante.split("_")
+            first_part = parts[0].strip()
+            if " " in first_part:
+                student_name = first_part.split()[0].capitalize()
+            else:
+                student_name = first_part.capitalize()
+
+            # Build user message with student data
+            user_message_parts = [
+                f"NOMBRE DEL ESTUDIANTE: {student_name}",
+                "(Usa solo el primer nombre al dirigirte al estudiante.)",
+                "",
+                "TEXTO DEL ESTUDIANTE:",
+                "```",
+                student_text,
+                "```",
+                "",
+            ]
+
+            # Add manual scores if provided
+            if manual_scores:
+                user_message_parts.append("TUS OBSERVACIONES DIRECTAS:")
+                user_message_parts.append("")
+                for criterio_name, comment in manual_scores.items():
+                    user_message_parts.append(f"  - {criterio_name}: {comment}")
+                user_message_parts.append("")
+
+            user_message = "\n".join(user_message_parts)
+
+            # Call LLM
+            raw_response = llm_client.generate_feedback(
+                system_prompt=system_prompt,
+                user_message=user_message,
+                rubric=rubric,
+                max_tokens=max_tokens
+            )
+
+            # Parse JSON response
+            llm_data = None
+            parse_error = None
+
+            try:
+                llm_data = extract_json_from_response(raw_response)
+                validate_feedback_structure(llm_data)
+            except ValueError as exc:
+                parse_error = str(exc)
+                logger.warning(f"Error parseando respuesta: {exc}")
+
+            # For DeepSeek, if parsing fails, we just fail (no retry with fix prompt)
+            if llm_data is None:
+                raise ValueError(f"Failed to parse JSON response: {parse_error}")
+
+            # Validate and fix scores against rubric
+            llm_data["puntajes"] = validate_and_fix_scores_against_rubric(
+                llm_data["puntajes"], rubric
+            )
+
+            # Build final structure
+            fecha_procesamiento = datetime.now(timezone.utc).isoformat()
+
+            feedback = {
+                "metadata": {
+                    "estudiante": estudiante,
+                    "archivo_original": archivo_original,
+                    "fecha_procesamiento": fecha_procesamiento,
+                    "curso": curso,
+                    "unidad": unidad,
+                    "actividad": actividad,
+                    "rubrica_usada": rubric_path.name,
+                    "descripcion_yaml": descripcion_yaml or "",
+                    "activity_instructions": activity_instructions or "",
+                    "student_text": student_text,
+                },
+                "retroalimentacion": {
+                    "puntajes": llm_data["puntajes"],
+                    "comentario_narrativo": llm_data["comentario_narrativo"],
+                },
+            }
+
+            # Save if output path specified
+            if output_base_path is not None:
+                output_path = _build_output_path(output_base_path, curso, unidad, actividad, archivo_original)
+                _save_feedback_json(feedback, output_path)
+                logger.info(f"Guardado: {output_path}")
+
+            results.append({
+                "id": submission_id,
+                "success": True,
+                "feedback": feedback,
+            })
+
+        except Exception as e:
+            logger.error(f"Error procesando {estudiante}: {e}")
+            results.append({
+                "id": submission_id,
+                "success": False,
+                "error": str(e),
+            })
+
+    successful = sum(1 for r in results if r["success"])
+    logger.info(f"Lote completado: {successful}/{len(results)} exitosos")
+
+    return results
+
+
 def generate_feedback_batch(
     submissions: list[dict[str, Any]],
     rubric_path: Path,
@@ -836,10 +991,11 @@ def generate_feedback_batch(
     actividad: str,
     activity_instructions: str | None = None,
     descripcion_yaml: str | None = None,
-    model: str = "claude-sonnet-4-20250514",
+    provider: str = "deepseek",
+    model: str | None = None,
     output_base_path: Path | None = None,
     max_tokens: int = 4096,
-    temperature: float = 0.3,
+    temperature: float = 1.0,
     manual_criteria: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
@@ -878,7 +1034,36 @@ def generate_feedback_batch(
         - feedback: Diccionario de retroalimentación (si success=True)
         - error: Mensaje de error (si success=False)
     """
-    # Import here to avoid error if not installed
+    logger.info(f"Procesando lote de {len(submissions)} entregas con {provider}")
+
+    # Load rubric and prompt template once
+    rubric = load_rubric(rubric_path)
+    prompt_template = load_prompt_template(prompt_path)
+
+    # Use unified client for DeepSeek
+    if provider == "deepseek":
+        from src.llm.client import LLMClient, extract_json_from_response as extract_json
+
+        llm_client = LLMClient(provider="deepseek", model=model, temperature=temperature)
+
+        # For DeepSeek, we don't have caching, so build full prompt for each student
+        return _generate_batch_deepseek(
+            llm_client=llm_client,
+            submissions=submissions,
+            rubric=rubric,
+            prompt_template=prompt_template,
+            curso=curso,
+            unidad=unidad,
+            actividad=actividad,
+            activity_instructions=activity_instructions,
+            descripcion_yaml=descripcion_yaml,
+            rubric_path=rubric_path,
+            output_base_path=output_base_path,
+            max_tokens=max_tokens,
+            manual_criteria=manual_criteria,
+        )
+
+    # Anthropic with prompt caching (original logic)
     try:
         from anthropic import Anthropic
     except ImportError:
@@ -895,11 +1080,7 @@ def generate_feedback_batch(
             "Configúralo con: export ANTHROPIC_API_KEY='tu-api-key'"
         )
 
-    logger.info(f"Procesando lote de {len(submissions)} entregas con prompt caching")
-
-    # Load rubric and prompt template once
-    rubric = load_rubric(rubric_path)
-    prompt_template = load_prompt_template(prompt_path)
+    logger.info(f"Usando prompt caching de Anthropic")
 
     # Build the cacheable prefix (constant across all students)
     cached_prefix = _build_cached_prompt_prefix(
@@ -928,18 +1109,16 @@ def generate_feedback_batch(
 
         try:
             # Extract first name from estudiante for personalized feedback
-            # Format varies:
-            # - Moodle: "FIRSTNAME LASTNAME_ID_assignsubmission_file_..." -> first word of first part
-            # - Manual: "Lastname_firstname_activity" -> second part (firstname)
+            # After filename processing, estudiante is in Spanish format: "Firstname_Lastname"
+            # - "Rubiela_Cardenas" -> "Rubiela"
+            # - "ROSLADY KATHERIN QUESADA DIAZ" -> "Roslady"
             parts = estudiante.split("_")
             first_part = parts[0].strip()
             if " " in first_part:
-                # Moodle format: "FIRSTNAME LASTNAME_..." -> extract first word
+                # Space-separated full name: "FIRSTNAME LASTNAME" -> extract first word
                 student_name = first_part.split()[0].capitalize()
-            elif len(parts) >= 2:
-                # Manual format: "Lastname_firstname_..." -> second part is firstname
-                student_name = parts[1].strip().capitalize()
             else:
+                # Underscore format: "Firstname_Lastname" -> first part is firstname
                 student_name = first_part.capitalize()
 
             # Call API with caching

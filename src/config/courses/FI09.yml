@@ -1,0 +1,155 @@
+curso: "FI09"
+nombre: "Aplicación, validación y análisis preliminar de instrumentos"
+modalidad: "Doctorado"
+institucion: "Universidad Cuauhtémoc"
+programa: "UCA EaD"
+
+criterios_generales:
+  referencias:
+    formato: "APA séptima edición"
+    doi_url_obligatorio: true
+  similitud:
+    maximo: 20
+    cero: 50
+    penalizacion: "21%–49% a criterio del tutor"
+  nota:
+    - "El sistema evalúa introducción, desarrollo, conclusiones, referencias y formato."
+    - "No se aceptan métodos mixtos."
+
+unidades:
+
+  - unidad: 1
+    nombre: "Unidad 1: Aplicación y validación de instrumentos"
+    actividades:
+
+      - id: "1.1"
+        titulo: "Foro: Consideraciones previas para la aplicación de instrumentos"
+        tipo: foro
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          En esta actividad deberás socializar, mediante un escrito compartido en el foro,
+          las consideraciones previas para la aplicación del instrumento o instrumentos de
+          tu protocolo de investigación.
+
+          Paso 1. Describe por qué se aplicará el instrumento y cómo permitirá responder
+          a la pregunta y objetivos de investigación, considerando:
+
+          – Consideraciones éticas (consentimiento informado, anonimato)
+          – Consideraciones cognitivas (claridad del proyecto, atención a dudas)
+          – Consideraciones procedimentales (espacios y horarios)
+          – Consideraciones metodológicas (validez, confiabilidad, archivo de datos)
+          – Consideraciones presupuestales (materiales y costos)
+
+          Paso 2. Comenta al menos dos aportaciones de tus compañeros, identificando:
+          – Similitudes y diferencias
+          – Elementos que podrías integrar a tu propio protocolo
+          – Relevancia, coherencia, redacción y citación APA
+          – Postura del investigador
+
+      - id: "1.2"
+        titulo: "Presentación: Valoración de instrumentos (validez y confiabilidad)"
+        tipo: presentacion
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_presentacion_ppt.json"
+        prompt: "src/config/prompts/retroalimentacion_presentacion.txt"
+        instrucciones: |
+          Esta actividad tiene como propósito validar y establecer la confiabilidad
+          de los instrumentos que aplicarás en tu protocolo de investigación.
+
+          Paso 1. Según tu caso:
+
+          a) Instrumento previamente validado:
+          – Nombre del instrumento
+          – Autor(es) y año
+          – Proceso de validación
+          – Objetivo
+          – Contextos de aplicación
+          – Número de ítems
+          – Dimensiones, subdimensiones e indicadores
+          – Justificación de uso en tu investigación
+
+          b) Instrumento elaborado por el autor:
+          – Enfoque cuantitativo: validación de contenido por expertos (tabla)
+          – Enfoque cualitativo: guion de entrevista u observación con
+            operacionalización de categorías
+
+          Se recomienda validación por 3 expertos con grado de doctorado
+          o, en su defecto, 5 compañeros mediante solicitud formal.
+
+          Paso 2.
+          – Instrumentos validados: describe en PPT el proceso de validación
+          – Instrumentos diseñados: presenta observaciones de los jueces evaluadores
+
+          Formato de entrega:
+          – Archivo PPT con plantilla UCA EaD
+          – Portada institucional
+          – Introducción
+          – Desarrollo
+          – Conclusiones
+          – Referencias APA 7ª edición
+
+  - unidad: 2
+    nombre: "Unidad 2: Piloteo y análisis preliminar de resultados"
+    actividades:
+
+      - id: "2.1"
+        titulo: "Documento: Aplicación y piloteo de instrumentos"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          El propósito de esta actividad es aplicar los instrumentos a manera
+          de prueba piloto y registrar los resultados obtenidos.
+
+          Metodología cuantitativa:
+          – Aplicar el instrumento (físico o virtual)
+          – Presentar base de datos en Excel
+          – Identificar respuestas representativas y justificar su relevancia
+
+          Metodología cualitativa:
+          – Aplicar el instrumento (entrevista, observación o grupo)
+          – Presentar transcripción en Word
+          – Identificar respuestas representativas y justificar su relevancia
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo
+          – Conclusiones
+          – Referencias APA
+
+      - id: "2.2"
+        titulo: "Escrito: Propuesta de análisis de resultados"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          Esta actividad tiene como propósito proponer el análisis de los
+          resultados obtenidos en el piloteo, considerando variables o
+          categorías del protocolo de investigación.
+
+          Metodología cuantitativa:
+          – Análisis descriptivo de variables, dimensiones o indicadores
+          – Uso de tablas y/o gráficas
+          – Interpretación preliminar de resultados
+
+          Metodología cualitativa:
+          – Descripción e interpretación de categorías, dimensiones e indicadores
+          – Inclusión de fragmentos significativos
+          – Análisis argumentado
+
+          Extensión máxima: 2 páginas de desarrollo.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo
+          – Conclusiones
+          – Referencias APA
+

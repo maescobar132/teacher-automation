@@ -93,7 +93,7 @@ unidades:
           – Desarrollo
           – Conclusiones
           – Referencias
-          
+
   - unidad: 2
     nombre: "Unidad 2: Instrumentos de recolección de información"
     actividades:
@@ -160,7 +160,7 @@ unidades:
           – Las referencias deben cumplir APA séptima edición, incluir URL o DOI y aparecer citadas tanto
             en el texto como en la lista final.
           - La universidad no acepta metodos mixtos.
-            
+
   - unidad: 3
     nombre: "Unidad 3: Operacionalización y Diseño del Estudio"
     actividades:
@@ -169,7 +169,7 @@ unidades:
         titulo: "Tabla de operacionalización"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/config/rubrics/rubric_3.1_tabla_operacionalizacion.json" # Ruta de rúbrica corregida
+        rubrica: "src/config/rubrics/rubric_3.1_tabla_operacionalizacion.json"
         prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Desarrollo de protocolo de investigación: Tabla de operacionalización
@@ -197,7 +197,7 @@ unidades:
         titulo: "Diseño del estudio"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/config/rubrics/rubric_3.2_tabla_diseno_investigacion.json" # Ruta de rúbrica corregida
+        rubrica: "src/config/rubrics/rubric_3.2_tabla_diseno_investigacion.json"
         prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Desarrollo de protocolo de investigación: Diseño del estudio
@@ -216,6 +216,75 @@ unidades:
 
           Requisito obligatorio de referencias: Todas las fuentes deben citarse en APA séptima edición, con DOI o URL obligatorio.
 
-          Criterios de similitud: Máximo permitido: 20%. 50% o más: calificación cero. 21% a 49%: posible penalización. 
-          
+          Criterios de similitud: Máximo permitido: 20%. 50% o más: calificación cero. 21% a 49%: posible penalización.
+
           NOTA: El sistema de revisión automática se centrará en evaluar las secciones textuales (Introducción, Desarrollo, Conclusiones, Referencias) y los criterios de formato/similitud.
+
+  - unidad: 4
+    nombre: "Unidad 4: Propuesta de análisis de datos"
+    actividades:
+
+      - id: "4.1"
+        titulo: "Propuesta de análisis de datos"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_4.1_propuesta_analisis.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+
+        instrucciones: |
+          Desarrollo de protocolo de investigación: Propuesta de análisis de datos
+
+          Esta actividad es fundamental para proponer los análisis más apropiados del protocolo 
+          de investigación, ya que estos serán utilizados en futuros avances de tu tesis.
+
+          Propósito de la actividad
+          Elaborar una propuesta de análisis de datos coherente con tu pregunta de investigación, 
+          objetivos y diseño metodológico previamente definidos.
+
+          Instrucciones
+          Elabora la propuesta de análisis de los datos con base en tu enfoque:
+
+          a) Enfoque cuantitativo
+          Consulta la Figura 1 (Elección de prueba estadística) y selecciona la(s) prueba(s) 
+          adecuada(s) según:
+          – Tipo de variable (nominal, ordinal, intervalar, de razón)
+          – Número de grupos a comparar
+          – Tipo de muestras (independientes o relacionadas)
+          – Cumplimiento de supuestos (normalidad, homocedasticidad)
+
+          Pruebas estadísticas comunes:
+          – Comparación de dos grupos independientes: t de Student (paramétrica), U de Mann-Whitney (no paramétrica)
+          – Comparación de dos grupos relacionados: t pareada (paramétrica), Wilcoxon (no paramétrica)
+          – Comparación de más de dos grupos: ANOVA (paramétrica), Kruskal-Wallis (no paramétrica)
+          – Asociación entre variables categóricas: Chi cuadrado
+          – Medidas repetidas: ANOVA de medidas repetidas
+
+          b) Enfoque cualitativo
+          Consulta la Figura 2 (Tipos de análisis por técnica) y selecciona el análisis según 
+          tu técnica de recolección:
+          – Etnografía / Hermenéutica / fenomenología → Análisis de contenido
+          – Entrevistas → Análisis de narrativa o análisis del discurso
+          – Diálogos / Grupos focales → Análisis del discurso
+
+          Tu propuesta debe incluir:
+          – Justificación de la técnica o prueba seleccionada
+          – Relación con la pregunta y objetivos de investigación
+          – Software o herramienta de apoyo (si aplica)
+          – Procedimiento general de análisis
+
+          Producto entregable
+          Documento Word nombrado: Apellido Nombre U4A1. Debe contener:
+          – Portada (1 pág)
+          – Introducción con tabla de elementos clave (1 pág)
+          – Desarrollo (2 págs)
+          – Conclusiones (1 pág)
+          – Referencias (1 pág)
+
+          Requisito obligatorio de referencias
+          Todas las fuentes deben citarse en APA séptima edición e incluir DOI o URL obligatorio. 
+          Las referencias deben aparecer tanto en el texto como en la lista final.
+
+          Criterios de similitud
+          – Máximo permitido: 20% (excluye citas, referencias y frases de 8 palabras o menos)
+          – 50% o más: calificación cero
+          – 21% a 49%: posible penalización según criterio del tutor

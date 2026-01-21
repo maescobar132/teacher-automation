@@ -243,47 +243,69 @@ def convert_to_pdf(input_file: Path) -> Path:
     )
 
 
-def open_pdf_viewer(pdf_path: Path, wait: bool = True) -> subprocess.Popen | None:
+def open_document(file_path: Path, wait: bool = True) -> subprocess.Popen | None:
     """
-    Open a PDF file in evince viewer for manual inspection.
+    Open a document file (PDF, DOCX, DOC) in the default viewer.
 
     Args:
-        pdf_path: Path to the PDF file to open
-        wait: If True, waits for the viewer to close before returning
+        file_path: Path to the document file to open
+        wait: If True, waits for user confirmation before returning
 
     Returns:
         The Popen process if wait=False, None if wait=True
 
     Raises:
-        FileNotFoundError: If PDF file doesn't exist
-        RuntimeError: If evince cannot be launched
+        FileNotFoundError: If file doesn't exist
+        RuntimeError: If no viewer can be launched
     """
-    pdf_path = Path(pdf_path).resolve()
+    file_path = Path(file_path).resolve()
 
-    if not pdf_path.exists():
-        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
 
-    logger.info(f"Opening PDF viewer: {pdf_path.name}")
+    logger.info(f"Opening document: {file_path.name}")
 
-    # List of PDF viewers to try (in order of preference)
-    viewers = ["evince", "okular", "xdg-open", "gnome-open"]
+    # For PDF files, try dedicated PDF viewers first
+    if file_path.suffix.lower() == ".pdf":
+        viewers = ["evince", "okular", "xdg-open"]
+    else:
+        # For other files, use xdg-open which will use default application
+        viewers = ["xdg-open", "libreoffice"]
+
+    last_error = None
 
     for viewer in viewers:
         try:
+            # Try to launch the viewer
             process = subprocess.Popen(
-                [viewer, str(pdf_path)],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                [viewer, str(file_path)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
-            logger.debug(f"Launched {viewer} (PID: {process.pid})")
+            # Give it a moment to start
+            time.sleep(0.5)
+
+            # Check if process failed immediately
+            returncode = process.poll()
+            if returncode is not None:
+                # Process exited immediately, check stderr
+                stderr = process.stderr.read().decode('utf-8', errors='ignore')
+                logger.debug(f"{viewer} exited with code {returncode}: {stderr}")
+                last_error = stderr
+                continue
+
+            logger.info(f"Launched {viewer} successfully (PID: {process.pid})")
 
             if wait:
-                # Wait for viewer to close with periodic polling
-                logger.info("Waiting for PDF viewer to close...")
-                while process.poll() is None:
-                    time.sleep(0.5)
-                logger.info("PDF viewer closed")
+                # Give the viewer time to fully open
+                time.sleep(1)
+                print(f"\n   >>> Documento abierto con {viewer}")
+                print("   >>> Presione Enter cuando termine de revisar el documento <<<\n")
+                try:
+                    input("   Presione Enter para continuar: ")
+                except (EOFError, KeyboardInterrupt):
+                    print()
                 return None
             else:
                 return process
@@ -293,12 +315,32 @@ def open_pdf_viewer(pdf_path: Path, wait: bool = True) -> subprocess.Popen | Non
             continue
         except Exception as e:
             logger.warning(f"Error launching {viewer}: {e}")
+            last_error = str(e)
             continue
 
-    raise RuntimeError(
-        "Could not open PDF viewer. "
-        "Ensure evince, okular, or another PDF viewer is installed."
-    )
+    # If we get here, all viewers failed
+    error_msg = f"Could not open document viewer. Last error: {last_error}" if last_error else "No suitable document viewer found"
+    raise RuntimeError(error_msg)
+
+
+def open_pdf_viewer(pdf_path: Path, wait: bool = True) -> subprocess.Popen | None:
+    """
+    Open a PDF file in a viewer for manual inspection.
+
+    This is a wrapper around open_document for backwards compatibility.
+
+    Args:
+        pdf_path: Path to the PDF file to open
+        wait: If True, waits for user confirmation before returning
+
+    Returns:
+        The Popen process if wait=False, None if wait=True
+
+    Raises:
+        FileNotFoundError: If PDF file doesn't exist
+        RuntimeError: If viewer cannot be launched
+    """
+    return open_document(pdf_path, wait)
 
 
 def prompt_manual_scores(
