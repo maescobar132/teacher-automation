@@ -1,0 +1,221 @@
+curso: "FI06"
+nombre: "Definición teórico-conceptual en el marco de la investigación"
+modalidad: "Doctorado"
+institucion: "Universidad Cuauhtémoc"
+programa: "UCA EaD"
+
+criterios_generales:
+  referencias:
+    formato: "APA séptima edición"
+    doi_url_obligatorio: true
+  similitud:
+    maximo: 20
+    cero: 50
+    penalizacion: "21%–49% a criterio del tutor"
+  nota:
+    - "El sistema evalúa portada, introducción, tabla de elementos claves, desarrollo, conclusiones, referencias y formato."
+    - "No se aceptan métodos mixtos."
+
+unidades:
+
+  - unidad: 2
+    nombre: "Unidad 2: V1 – Variable dependiente / Categoría principal de estudio"
+    actividades:
+
+      - id: "2.1"
+        titulo: "Tabla de búsqueda: estudios que conceptualizan la V1 o categoría principal"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_consulta_articulos_fi06.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          El propósito de esta actividad es fundamentar el estado del arte a partir
+          de la consulta de antecedentes y estudios actuales que permitan abordar el
+          tema de estudio y desarrollar el estado del arte del protocolo de investigación.
+
+          Actividad previa obligatoria (calificación formativa): antes de elaborar la
+          tabla y el análisis final, completa las tarjetas de estudio interactivas.
+          Esta actividad no afecta el promedio final, pero es obligatoria para continuar.
+
+          Paso 1. Identifica y señala en la introducción:
+          – Enfoque cuantitativo: la(s) variable(s) dependiente(s) o V1 (variable de medida).
+          – Enfoque cualitativo: la(s) categoría(s) principal(es) de estudio.
+          Esta información debe quedar explícitamente mencionada en la introducción.
+
+          Paso 2. Consulta las siguientes investigaciones:
+          – Tres investigaciones clásicas o de autores precursores que conceptualicen
+            la(s) variable(s) o categoría(s) principal(es). (Análisis conceptual).
+          – Tres estudios empíricos recientes, con antigüedad no mayor a cinco años,
+            que aborden las mismas variables o categorías. (Análisis referencial).
+          – Del total de seis investigaciones, cuatro deben estar en español y dos en inglés.
+          – Se recomienda consultar las fuentes sugeridas en la Guía de fuentes de
+            información iberoamericana para la investigación educativa.
+
+          Paso 3. Elabora una tabla con los elementos solicitados para cada tipo de estudio:
+          – Listado conceptual formato UCA para las investigaciones clásicas.
+          – Listado referencial formato UCA para los estudios recientes.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo (tabla de búsqueda)
+          – Conclusiones
+          – Referencias APA 7.ª edición
+
+      - id: "2.2"
+        titulo: "Escrito: conceptualización de la V1 o categoría principal"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          El propósito de esta actividad es construir de manera narrativa o en prosa
+          un esbozo del estado del arte de la variable dependiente (enfoque cuantitativo)
+          o la categoría principal (enfoque cualitativo).
+
+          Paso 1. Identifica y señala en la introducción la variable dependiente
+          (cuantitativo) o la categoría principal (cualitativo) y menciónala en el
+          primer párrafo del escrito.
+
+          Paso 2. Con base en la consulta realizada en la actividad 2.1, elabora un
+          escrito en prosa con extensión de 2 páginas en formato Word, en el que
+          conceptualices a partir de la integración de antecedentes y estudios recientes
+          la variable dependiente (cuantitativo) y/o la categoría principal (cualitativo),
+          según corresponda a tu investigación.
+          Se solicita revisar el ejemplo de redacción para análisis conceptual.
+          El índice de similitud no debe exceder el 20%.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo en prosa (2 páginas)
+          – Conclusiones
+          – Referencias APA 7.ª edición
+
+  - unidad: 3
+    nombre: "Unidad 3: V2 – Variable independiente / Categoría secundaria de estudio"
+    actividades:
+
+      - id: "3.1"
+        titulo: "Tabla de búsqueda: estudios que conceptualizan la V2 o categoría secundaria"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_consulta_articulos_fi06.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          El propósito de esta actividad es fundamentar el estado del arte a partir de
+          la consulta de antecedentes y estudios actuales sobre la variable independiente
+          (cuantitativo) o categoría secundaria (cualitativo) del protocolo de investigación.
+
+          Paso 1. Identifica y señala en la introducción:
+          – Enfoque cuantitativo: la(s) variable(s) independiente(s) o V2 / variable agrupadora.
+          – Enfoque cualitativo: la(s) categoría(s) secundaria(s) de estudio.
+
+          Paso 2. Consulta:
+          – Tres investigaciones de autores clásicos o precursores que conceptualicen
+            la V2 o categoría secundaria. (Análisis conceptual).
+          – Tres estudios empíricos recientes, con antigüedad no mayor a cinco años,
+            que aborden la V2 o categoría secundaria. (Análisis referencial).
+          – Del total de seis investigaciones, cuatro deben estar en español y dos en inglés.
+          – Se recomienda consultar las ligas sugeridas en el documento
+            "sugerencias de ligas de consulta".
+
+          Paso 3. Elabora una tabla con los elementos correspondientes a cada tipo de estudio:
+          – Listado referencial formato UCA para estudios recientes.
+          – Listado conceptual formato UCA para estudios clásicos.
+          El índice de similitud no debe exceder el 20%.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo (tabla de búsqueda)
+          – Conclusiones
+          – Referencias APA 7.ª edición
+
+      - id: "3.2"
+        titulo: "Escrito: conceptualización y principales elementos de la V2 o categoría secundaria"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          El propósito de esta actividad es construir de manera narrativa o en prosa
+          un esbozo del estado del arte de la variable independiente (cuantitativo)
+          o categoría secundaria (cualitativo).
+
+          Paso 1. Identifica y señala en la introducción la V2 o variable agrupadora
+          (cuantitativo) o la categoría secundaria (cualitativo) y menciónala en el
+          primer párrafo del escrito.
+
+          Paso 2. Con base en la consulta realizada en la actividad 3.1, elabora un
+          escrito en prosa con extensión de 2 páginas en formato Word, en el que
+          conceptualices a partir de la integración de antecedentes y estudios recientes
+          la V2 o categoría secundaria, según corresponda a tu investigación.
+          Se recomienda consultar las ligas sugeridas en "sugerencias de ligas de consulta".
+          El índice de similitud no debe exceder el 20%.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo en prosa (2 páginas)
+          – Conclusiones
+          – Referencias APA 7.ª edición
+
+  - unidad: 4
+    nombre: "Unidad 4: Integración de la Teoría Educativa"
+    actividades:
+
+      - id: "4.1"
+        titulo: "Escrito: Integración de la Teoría Educativa, análisis conceptual y estudios empíricos"
+        tipo: escrito
+        extraer_texto: true
+        rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        instrucciones: |
+          Esta actividad representa un avance significativo en la construcción del estado
+          del arte del protocolo de investigación. Integra la construcción del conocimiento
+          elaborada en las actividades 2.2 y 3.2.
+
+          El escrito se entregará en 2 páginas.
+          Revisar la rúbrica de evaluación: Escrito.
+          El índice de similitud máximo deberá ser de 20%.
+
+          El documento debe incluir:
+          – Portada institucional
+          – Introducción
+          – Tabla de elementos claves del protocolo
+          – Desarrollo integrado (2 páginas)
+          – Conclusiones
+          – Referencias APA 7.ª edición
+
+      - id: "4.2"
+        titulo: "Foro videograbación: Integración de la Teoría Educativa"
+        tipo: foro
+        extraer_texto: false
+        rubrica: "src/config/rubrics/rubric_video_foro.json"
+        prompt: "src/config/prompts/retroalimentacion_foro.txt"
+        instrucciones: |
+          El propósito de esta actividad es compartir el avance del estado del arte
+          a partir de la consulta y análisis de fuentes que abordan los temas de estudio.
+
+          Paso 1. Elabora un video de 5 minutos en el que expongas el avance del
+          estado del arte (Teoría Educativa, análisis conceptual y análisis referencial).
+          – Publicar el video preferentemente el viernes previo al cierre de la actividad.
+          – Verificar que la liga no solicite usuario ni contraseña para su proyección.
+          – Colocar en el foro la liga del video.
+
+          Paso 2. Comenta el avance de 2 compañeros con argumentos parafraseados,
+          considerando:
+          – La relevancia de la aportación del autor
+          – La consistencia y coherencia del escrito (idea central y secundarias,
+            párrafo a párrafo y del documento en general)
+          – La redacción y ortografía
+          – La citación conforme APA
+          – La postura del investigador respecto al tema
+
+          Nota: una presentación en PowerPoint es solo guía para el expositor;
+          no deberá tener saturación de texto.
