@@ -737,6 +737,7 @@ def _call_llm_with_caching(
     max_tokens: int,
     temperature: float,
     manual_scores: dict[str, Any] | None = None,
+    citas_textuales_check: dict[str, Any] | None = None,
 ) -> str:
     """
     Call the Anthropic API with prompt caching enabled.
@@ -789,6 +790,19 @@ def _call_llm_with_caching(
                 student_section_parts.append(f"    Tu observación: {comment}")
         student_section_parts.append("")
         student_section_parts.append("IMPORTANTE: Integra estas observaciones tuyas sobre formato/referencias en el comentario narrativo de forma natural, desde tu perspectiva como tutor (NO te refieras a 'el tutor' en tercera persona).")
+        student_section_parts.append("")
+
+    # Add citas textuales check if provided
+    if citas_textuales_check:
+        student_section_parts.append("VERIFICACIÓN DE CITAS TEXTUALES (por el tutor):")
+        if citas_textuales_check.get("has_citas_textuales"):
+            student_section_parts.append("  El tutor SÍ observó citas textuales en el documento.")
+            if citas_textuales_check.get("details"):
+                student_section_parts.append(f"  Detalles: {citas_textuales_check['details']}")
+        else:
+            student_section_parts.append("  El tutor NO observó citas textuales (texto entre comillas copiado de fuentes).")
+            student_section_parts.append("  IMPORTANTE: NO menciones 'citas textuales' como problema si el tutor no las observó.")
+            student_section_parts.append("  Las referencias parentéticas (Autor, Año) son formato APA correcto, NO son citas textuales.")
         student_section_parts.append("")
 
     student_section_parts.append(f"Texto del estudiante:\n\"\"\"\n{student_text}\n\"\"\"")
@@ -871,6 +885,7 @@ def _generate_batch_deepseek(
         estudiante = submission.get("estudiante", str(submission_id))
         archivo_original = submission.get("archivo_original", "unknown")
         manual_scores = submission.get("manual_scores")
+        citas_check = submission.get("citas_textuales_check")
 
         logger.info(f"[{i}/{len(submissions)}] Procesando: {estudiante}")
 
@@ -900,8 +915,29 @@ def _generate_batch_deepseek(
             if manual_scores:
                 user_message_parts.append("TUS OBSERVACIONES DIRECTAS:")
                 user_message_parts.append("")
-                for criterio_name, comment in manual_scores.items():
-                    user_message_parts.append(f"  - {criterio_name}: {comment}")
+                for criterio_name, data in manual_scores.items():
+                    if isinstance(data, dict):
+                        score = data.get("puntaje", 0)
+                        maximo = data.get("maximo", 0)
+                        comment = data.get("comentario", "")
+                        user_message_parts.append(f"  - {criterio_name}: {score}/{maximo}")
+                        if comment:
+                            user_message_parts.append(f"    Tu observación: {comment}")
+                    else:
+                        user_message_parts.append(f"  - {criterio_name}: {data}")
+                user_message_parts.append("")
+
+            # Add citas textuales check if provided
+            if citas_check:
+                user_message_parts.append("VERIFICACIÓN DE CITAS TEXTUALES (por el tutor):")
+                if citas_check.get("has_citas_textuales"):
+                    user_message_parts.append(f"  El tutor SÍ observó citas textuales en el documento.")
+                    if citas_check.get("details"):
+                        user_message_parts.append(f"  Detalles: {citas_check['details']}")
+                else:
+                    user_message_parts.append("  El tutor NO observó citas textuales (texto entre comillas copiado de fuentes).")
+                    user_message_parts.append("  IMPORTANTE: NO menciones 'citas textuales' como problema si el tutor no las observó.")
+                    user_message_parts.append("  Las referencias parentéticas (Autor, Año) son formato APA correcto, NO son citas textuales.")
                 user_message_parts.append("")
 
             user_message = "\n".join(user_message_parts)
@@ -1036,9 +1072,42 @@ def generate_feedback_batch(
     """
     logger.info(f"Procesando lote de {len(submissions)} entregas con {provider}")
 
+    # Set default model based on provider if not specified
+    if model is None:
+        if provider == "anthropic":
+            model = "claude-sonnet-4-20250514"
+        elif provider == "deepseek":
+            model = "deepseek-chat"
+        logger.info(f"Usando modelo por defecto: {model}")
+
     # Load rubric and prompt template once
     rubric = load_rubric(rubric_path)
     prompt_template = load_prompt_template(prompt_path)
+
+    # Analyze rubric to extract citation constraints
+    try:
+        from src.rubrics.analyzer import analyze_rubric, build_citation_constraints_prompt
+        rubric_analysis = analyze_rubric(rubric_path)
+        citation_constraints_text = build_citation_constraints_prompt(rubric_analysis)
+        # Inject constraints into prompt template
+        if citation_constraints_text:
+            prompt_template = prompt_template.replace(
+                "[CITATION_CONSTRAINTS]",
+                citation_constraints_text
+            )
+        else:
+            # No specific constraints, use default neutral instruction
+            prompt_template = prompt_template.replace(
+                "[CITATION_CONSTRAINTS]",
+                "• Verify citations are properly formatted if present in the text"
+            )
+        logger.debug(f"Rubric analysis: {len(rubric_analysis.get('citation_constraints', {}))} citation constraints extracted")
+    except Exception as e:
+        logger.warning(f"Could not analyze rubric: {e}. Proceeding with default prompt.")
+        prompt_template = prompt_template.replace(
+            "[CITATION_CONSTRAINTS]",
+            "• Verify citations are properly formatted if present in the text"
+        )
 
     # Use unified client for DeepSeek
     if provider == "deepseek":
@@ -1104,6 +1173,7 @@ def generate_feedback_batch(
         estudiante = submission.get("estudiante", str(submission_id))
         archivo_original = submission.get("archivo_original", "unknown")
         manual_scores = submission.get("manual_scores")  # Pre-filled manual scores
+        citas_check = submission.get("citas_textuales_check")  # Tutor verification of direct quotes
 
         logger.info(f"[{i}/{len(submissions)}] Procesando: {estudiante}")
 
@@ -1131,6 +1201,7 @@ def generate_feedback_batch(
                 max_tokens=max_tokens,
                 temperature=temperature,
                 manual_scores=manual_scores,
+                citas_textuales_check=citas_check,
             )
 
             # Parse JSON response

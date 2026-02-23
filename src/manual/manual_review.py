@@ -533,3 +533,47 @@ def calculate_final_total(puntajes: list[dict[str, Any]]) -> dict[str, int | flo
         "total_obtenido": total_obtenido,
         "total_maximo": total_maximo,
     }
+
+
+def prompt_citas_textuales_check() -> dict[str, Any]:
+    """
+    Ask the tutor if they observed direct textual quotes in the document.
+
+    A "cita textual" is text enclosed in quotation marks copied verbatim
+    from a bibliographic source (NOT parenthetical citations like (Author, 2024)).
+
+    Returns:
+        Dictionary with:
+        - has_citas_textuales: bool
+        - details: str (optional details if yes)
+    """
+    print("\n" + "-" * 60)
+    print("VERIFICACIÓN DE CITAS TEXTUALES")
+    print("-" * 60)
+    print("Una 'cita textual' es texto ENTRE COMILLAS copiado de una fuente.")
+    print("Ejemplo: \"La motivación es clave\" (García, 2023, p. 45)")
+    print("NO confundir con referencias parentéticas (Autor, Año) que son correctas.")
+    print("-" * 60)
+
+    while True:
+        try:
+            response = input("\n¿Observaste citas textuales en el documento? (s/n): ").strip().lower()
+            if response in ["s", "si", "sí", "y", "yes"]:
+                details = input("Describe brevemente dónde las observaste (opcional, Enter para omitir): ").strip()
+                return {
+                    "has_citas_textuales": True,
+                    "details": details if details else "El tutor observó citas textuales en el documento.",
+                }
+            elif response in ["n", "no"]:
+                return {
+                    "has_citas_textuales": False,
+                    "details": "",
+                }
+            else:
+                print("  ⚠ Responde 's' para sí o 'n' para no")
+        except EOFError:
+            print("\n  ⚠ Entrada cancelada, asumiendo que no hay citas textuales")
+            return {
+                "has_citas_textuales": False,
+                "details": "",
+            }

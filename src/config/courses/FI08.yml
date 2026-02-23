@@ -9,7 +9,7 @@ unidades:
         tipo: escrito
         extraer_texto: true
         rubrica: "src/config/rubrics/rubric_propuesta_objetivos.json"
-        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        prompt: "src/config/prompts/retroalimentacion_formativa_v2.txt"
 
         instrucciones: |
           Actividad 1.1 – Propuesta de objetivos del protocolo de investigación.
@@ -73,7 +73,7 @@ unidades:
         tipo: escrito
         extraer_texto: true
         rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
-        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        prompt: "src/config/prompts/retroalimentacion_formativa_v2.txt"
 
         instrucciones: |
           Esta actividad busca definir quiénes podrían ser tus participantes y en qué contexto
@@ -115,7 +115,7 @@ unidades:
         tipo: escrito
         extraer_texto: true
         rubrica: "src/config/rubrics/rubric_escrito_uca_ead.json"
-        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
+        prompt: "src/config/prompts/retroalimentacion_formativa_v2.txt"
         instrucciones: |
           Introducción
           Esta actividad es fundamental dentro de tu protocolo de investigación, pues te permitirá

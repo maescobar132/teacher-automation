@@ -463,8 +463,8 @@ especificado y generará retroalimentación para cada uno.
     if args.presentation:
         from src.grading.grade_presentations import (
             batch_convert_presentations,
-            load_rubric,
-            load_prompt,
+            load_rubric as load_rubric_presentations,
+            load_prompt as load_prompt_presentations,
             load_progress,
             save_progress,
             open_pdf,
@@ -507,8 +507,8 @@ especificado y generará retroalimentación para cada uno.
             sys.exit(1)
 
         # Load rubric and prompt
-        rubric = load_rubric(rubric_path)
-        prompt_template = load_prompt(prompt_path)
+        rubric = load_rubric_presentations(rubric_path)
+        prompt_template = load_prompt_presentations(prompt_path)
 
         print(f"✓ Rúbrica: {rubric_path.name}")
         print(f"✓ Prompt: {prompt_path.name}")
@@ -667,8 +667,6 @@ especificado y generará retroalimentación para cada uno.
                 feedback = preview_and_edit_feedback(feedback, student_name)
 
                 # Build final JSON structure
-                from datetime import datetime
-
                 output_data = {
                     "metadata": {
                         "estudiante": student_name,
@@ -906,6 +904,9 @@ especificado y generará retroalimentación para cada uno.
     # 9. Obtener descripción de la actividad desde YAML
     yaml_description = activity.get("titulo", "") or activity.get("descripcion", "")
 
+    # 10. Load rubric early (before hybrid block) to avoid scoping issues
+    rubric = load_rubric(rubric_path)
+
     # 10. Preparar submissions para batch processing
     print("\n" + "=" * 60)
     print("EXTRAYENDO TEXTO DE ENTREGAS...")
@@ -992,10 +993,8 @@ especificado y generará retroalimentación para cada uno.
             get_format_criteria,
             get_auto_full_score_criteria,
             generate_auto_scores,
+            prompt_citas_textuales_check,
         )
-
-        # Load rubric for manual scoring reference
-        rubric = load_rubric(rubric_path)
 
         # --- LÓGICA DE CARGA DINÁMICA DE CRITERIOS MANUALES ---
         if args.manual_criteria:
@@ -1042,7 +1041,10 @@ especificado y generará retroalimentación para cada uno.
                 for criterio in valid_auto_criteria:
                     print(f"  • {criterio}")
 
-            # Process each student sequentially
+            # Process students with parallel AI generation
+            # While AI processes student N, tutor reviews student N+1
+            from concurrent.futures import ThreadPoolExecutor, Future
+
             results = []
             successful = 0
             failed = 0
@@ -1051,149 +1053,193 @@ especificado y generará retroalimentación para cada uno.
             file_map = {sub["archivo_original"]: sub for sub in submissions}
             original_file_map = {f.name: f for f in submission_files}
 
-            for i, submission in enumerate(submissions, 1):
-                student_name = submission["estudiante"]
-                archivo_original = submission["archivo_original"]
-                original_file = original_file_map.get(archivo_original)
+            # Track pending AI tasks: list of (student_name, archivo_original, manual_result, future)
+            pending_ai_tasks = []
+            all_manual_criteria = valid_format_criteria + valid_auto_criteria
 
-                print(f"\n{'=' * 60}")
-                print(f"[{i}/{len(submissions)}] PROCESANDO: {student_name}")
-                print(f"{'=' * 60}")
+            def run_ai_generation(submission_with_manual):
+                """Run AI generation in background thread."""
+                return generate_feedback_batch(
+                    submissions=[submission_with_manual],
+                    rubric_path=rubric_path,
+                    prompt_path=prompt_path,
+                    curso=args.course,
+                    unidad=args.unit,
+                    actividad=args.activity,
+                    activity_instructions=activity_instructions,
+                    descripcion_yaml=yaml_description,
+                    provider=args.provider,
+                    model=args.model,
+                    output_base_path=None,
+                    temperature=args.temperature,
+                    manual_criteria=all_manual_criteria,
+                )
 
-                try:
-                    # Step 1: Open document for manual review
-                    print("\n1. Abriendo documento para revisión...")
-                    if original_file and original_file.exists():
-                        try:
-                            # If DOCX, convert to PDF first
-                            if original_file.suffix.lower() in ['.docx', '.doc']:
-                                pdf_path = convert_to_pdf(original_file)
-                                print(f"   Conversión exitosa: {pdf_path.name}")
-                                open_pdf_viewer(pdf_path, wait=True)
-                            else:
-                                # Already a PDF, open directly
-                                open_pdf_viewer(original_file, wait=True)
-                        except Exception as e:
-                            print(f"   ⚠ No se pudo convertir/abrir PDF: {e}")
-                            print(f"   Intentando abrir documento original con visor por defecto...")
+            # Use single-threaded executor (API calls should be sequential)
+            executor = ThreadPoolExecutor(max_workers=1)
+
+            try:
+                for i, submission in enumerate(submissions, 1):
+                    student_name = submission["estudiante"]
+                    archivo_original = submission["archivo_original"]
+                    original_file = original_file_map.get(archivo_original)
+                    is_last = (i == len(submissions))
+
+                    print(f"\n{'=' * 60}")
+                    print(f"[{i}/{len(submissions)}] PROCESANDO: {student_name}")
+                    print(f"{'=' * 60}")
+
+                    try:
+                        # Step 1: Open document for manual review
+                        print("\n1. Abriendo documento para revisión...")
+                        if original_file and original_file.exists():
                             try:
-                                # Fallback: open original document with default application
-                                from src.manual.manual_review import open_document
-                                open_document(original_file, wait=True)
-                            except Exception as e2:
-                                print(f"   ⚠ No se pudo abrir documento: {e2}")
-                                print("   Continuando con evaluación manual sin visor...")
-                    else:
-                        print(f"   ⚠ Archivo original no encontrado: {archivo_original}")
+                                if original_file.suffix.lower() in ['.docx', '.doc']:
+                                    pdf_path = convert_to_pdf(original_file)
+                                    print(f"   Conversión exitosa: {pdf_path.name}")
+                                    open_pdf_viewer(pdf_path, wait=True)
+                                else:
+                                    open_pdf_viewer(original_file, wait=True)
+                            except Exception as e:
+                                print(f"   ⚠ No se pudo convertir/abrir PDF: {e}")
+                                print(f"   Intentando abrir documento original con visor por defecto...")
+                                try:
+                                    from src.manual.manual_review import open_document
+                                    open_document(original_file, wait=True)
+                                except Exception as e2:
+                                    print(f"   ⚠ No se pudo abrir documento: {e2}")
+                                    print("   Continuando con evaluación manual sin visor...")
+                        else:
+                            print(f"   ⚠ Archivo original no encontrado: {archivo_original}")
 
-                    # Step 2: Prompt for manual scores (formato, referencias)
-                    print("\n2. Evaluación manual de criterios de formato...")
-                    manual_result = prompt_manual_scores(rubric, valid_format_criteria)
+                        # Step 2: Ask about citas textuales
+                        print("\n2. Verificación de citas textuales...")
+                        citas_check = prompt_citas_textuales_check()
 
-                    # Generate auto scores for criteria like Portada
-                    auto_result = generate_auto_scores(rubric, valid_auto_criteria)
+                        # Step 3: Prompt for manual scores
+                        print("\n3. Evaluación manual de criterios de formato...")
+                        manual_result = prompt_manual_scores(rubric, valid_format_criteria)
 
-                    # Merge auto scores into manual_result
-                    manual_result["scores"].update(auto_result["scores"])
-                    manual_result["comments"].update(auto_result["comments"])
+                        # Generate auto scores for criteria like Portada
+                        auto_result = generate_auto_scores(rubric, valid_auto_criteria)
+                        manual_result["scores"].update(auto_result["scores"])
+                        manual_result["comments"].update(auto_result["comments"])
 
-                    # Build manual_scores dict for AI integration (includes both manual and auto)
-                    all_manual_criteria = valid_format_criteria + valid_auto_criteria
-                    manual_scores_for_ai = {}
-                    for criterio in all_manual_criteria:
-                        criterio_data = next(
-                            (c for c in rubric.get("criterios", []) if c.get("nombre") == criterio),
-                            {}
-                        )
-                        manual_scores_for_ai[criterio] = {
-                            "puntaje": manual_result["scores"].get(criterio, 0),
-                            "maximo": criterio_data.get("puntaje_maximo", 5),
-                            "comentario": manual_result["comments"].get(criterio, ""),
-                        }
+                        # Build manual_scores dict for AI
+                        manual_scores_for_ai = {}
+                        for criterio in all_manual_criteria:
+                            criterio_data = next(
+                                (c for c in rubric.get("criterios", []) if c.get("nombre") == criterio),
+                                {}
+                            )
+                            manual_scores_for_ai[criterio] = {
+                                "puntaje": manual_result["scores"].get(criterio, 0),
+                                "maximo": criterio_data.get("puntaje_maximo", 5),
+                                "comentario": manual_result["comments"].get(criterio, ""),
+                            }
 
-                    # Step 3: Generate AI feedback (with manual scores integrated)
-                    print("\n3. Generando retroalimentación AI...")
-                    submission_with_manual = submission.copy()
-                    submission_with_manual["manual_scores"] = manual_scores_for_ai
+                        # Prepare submission with manual data
+                        submission_with_manual = submission.copy()
+                        submission_with_manual["manual_scores"] = manual_scores_for_ai
+                        submission_with_manual["citas_textuales_check"] = citas_check
 
-                    batch_result = generate_feedback_batch(
-                        submissions=[submission_with_manual],
-                        rubric_path=rubric_path,
-                        prompt_path=prompt_path,
-                        curso=args.course,
-                        unidad=args.unit,
-                        actividad=args.activity,
-                        activity_instructions=activity_instructions,
-                        descripcion_yaml=yaml_description,
-                        provider=args.provider,
-                        model=args.model,
-                        output_base_path=None,  # Don't save yet
-                        temperature=args.temperature,
-                        manual_criteria=all_manual_criteria,
-                    )
+                        # Step 4: Start AI generation
+                        if is_last:
+                            # Last student: run synchronously
+                            print("\n4. Generando retroalimentación AI...")
+                            future = executor.submit(run_ai_generation, submission_with_manual)
+                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future))
+                        else:
+                            # Not last: run in background, continue to next student
+                            print("\n4. Iniciando AI en segundo plano...")
+                            future = executor.submit(run_ai_generation, submission_with_manual)
+                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future))
+                            print("   → AI procesando mientras revisas el siguiente documento")
 
-                    if not batch_result or not batch_result[0].get("success"):
-                        error_msg = batch_result[0].get("error", "Unknown") if batch_result else "No result"
-                        print(f"   ✗ Error AI: {error_msg}")
+                    except Exception as e:
+                        print(f"\n   ✗ Error en revisión manual de {student_name}: {e}")
+                        if args.debug:
+                            import traceback
+                            traceback.print_exc()
                         failed += 1
                         results.append({
                             "student": student_name,
                             "file": archivo_original,
                             "success": False,
-                            "error": error_msg,
+                            "error": str(e),
                         })
-                        continue
 
-                    feedback = batch_result[0]["feedback"]
-                    ai_puntajes = feedback["retroalimentacion"]["puntajes"]
-                    ai_score = sum(p.get("puntaje", 0) for p in ai_puntajes)
-                    print(f"   ✓ Puntaje AI: {ai_score}")
+                # Process all AI results
+                print("\n" + "=" * 60)
+                print("PROCESANDO RESULTADOS DE AI...")
+                print("=" * 60)
 
-                    # Step 4: Merge AI scores with manual scores
-                    merged_puntajes = merge_manual_scores(ai_puntajes, manual_result, rubric)
-                    totals = calculate_final_total(merged_puntajes)
+                for student_name, archivo_original, manual_result, future in pending_ai_tasks:
+                    print(f"\n   Esperando AI para: {student_name}...", end=" ", flush=True)
+                    try:
+                        batch_result = future.result(timeout=300)  # 5 min timeout
 
-                    # Update feedback with merged scores
-                    feedback["retroalimentacion"]["puntajes"] = merged_puntajes
+                        if not batch_result or not batch_result[0].get("success"):
+                            error_msg = batch_result[0].get("error", "Unknown") if batch_result else "No result"
+                            print(f"✗ Error: {error_msg}")
+                            failed += 1
+                            results.append({
+                                "student": student_name,
+                                "file": archivo_original,
+                                "success": False,
+                                "error": error_msg,
+                            })
+                            continue
 
-                    # Add manual scoring metadata
-                    feedback["manual_scores"] = manual_result["scores"]
-                    feedback["manual_comments"] = manual_result["comments"]
-                    feedback["final_total"] = totals["total_obtenido"]
-                    feedback["final_maximo"] = totals["total_maximo"]
+                        feedback = batch_result[0]["feedback"]
+                        ai_puntajes = feedback["retroalimentacion"]["puntajes"]
+                        ai_score = sum(p.get("puntaje", 0) for p in ai_puntajes)
 
-                    # Step 5: Save final JSON
-                    output_json_path = output_dir / f"{student_name}.json"
-                    output_json_path.parent.mkdir(parents=True, exist_ok=True)
-                    with output_json_path.open("w", encoding="utf-8") as f:
-                        json.dump(feedback, f, ensure_ascii=False, indent=2)
+                        # Merge AI scores with manual scores
+                        merged_puntajes = merge_manual_scores(ai_puntajes, manual_result, rubric)
+                        totals = calculate_final_total(merged_puntajes)
 
-                    final_score = totals["total_obtenido"]
-                    print(f"\n   ✓ Puntaje final: {final_score}/{totals['total_maximo']}")
-                    print(f"   ✓ JSON guardado: {output_json_path.name}")
+                        # Update feedback
+                        feedback["retroalimentacion"]["puntajes"] = merged_puntajes
+                        feedback["manual_scores"] = manual_result["scores"]
+                        feedback["manual_comments"] = manual_result["comments"]
+                        feedback["final_total"] = totals["total_obtenido"]
+                        feedback["final_maximo"] = totals["total_maximo"]
 
-                    successful += 1
-                    results.append({
-                        "student": student_name,
-                        "file": archivo_original,
-                        "success": True,
-                        "score": final_score,
-                        "ai_score": ai_score,
-                        "manual_scores": manual_result["scores"],
-                    })
+                        # Save JSON
+                        output_json_path = output_dir / f"{student_name}.json"
+                        output_json_path.parent.mkdir(parents=True, exist_ok=True)
+                        with output_json_path.open("w", encoding="utf-8") as f:
+                            json.dump(feedback, f, ensure_ascii=False, indent=2)
 
-                except Exception as e:
-                    print(f"\n   ✗ Error procesando {student_name}: {e}")
-                    if args.debug:
-                        import traceback
-                        traceback.print_exc()
-                    failed += 1
-                    results.append({
-                        "student": student_name,
-                        "file": archivo_original,
-                        "success": False,
-                        "error": str(e),
-                    })
+                        final_score = totals["total_obtenido"]
+                        print(f"✓ {final_score}/{totals['total_maximo']}")
+
+                        successful += 1
+                        results.append({
+                            "student": student_name,
+                            "file": archivo_original,
+                            "success": True,
+                            "score": final_score,
+                            "ai_score": ai_score,
+                            "manual_scores": manual_result["scores"],
+                        })
+
+                    except Exception as e:
+                        print(f"✗ Error: {e}")
+                        if args.debug:
+                            import traceback
+                            traceback.print_exc()
+                        failed += 1
+                        results.append({
+                            "student": student_name,
+                            "file": archivo_original,
+                            "success": False,
+                            "error": str(e),
+                        })
+
+            finally:
+                executor.shutdown(wait=False)
 
     else:
         # --- MODO NORMAL (batch processing) ---
