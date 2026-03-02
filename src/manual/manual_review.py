@@ -178,6 +178,39 @@ def convert_to_pdf(input_file: Path) -> Path:
 
     logger.info(f"Converting to PDF: {input_file.name}")
 
+    # Try PowerShell + Word COM on WSL2 (no extra install required)
+    if _is_wsl():
+        try:
+            win_input = subprocess.run(
+                ["wslpath", "-w", str(input_file)],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.strip()
+            win_output = subprocess.run(
+                ["wslpath", "-w", str(output_dir)],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.strip()
+            pdf_win_path = win_output + "\\" + input_file.stem + ".pdf"
+
+            ps_script = (
+                "$w = New-Object -ComObject Word.Application;"
+                "$w.Visible = $false;"
+                f"$d = $w.Documents.Open('{win_input}');"
+                f"$d.SaveAs('{pdf_win_path}', 17);"
+                "$d.Close(); $w.Quit()"
+            )
+            result = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-Command", ps_script],
+                capture_output=True, text=True, timeout=120,
+            )
+            pdf_path = output_dir / f"{input_file.stem}.pdf"
+            if result.returncode == 0 and pdf_path.exists():
+                logger.info(f"Converted via Word COM: {pdf_path.name}")
+                return pdf_path
+            else:
+                logger.warning(f"Word COM conversion failed: {result.stderr.strip()}")
+        except Exception as e:
+            logger.warning(f"Word COM conversion error: {e}")
+
     # Try LibreOffice first
     try:
         result = subprocess.run(
