@@ -59,28 +59,36 @@ Es fundamental comprender las limitaciones del sistema para utilizarlo de manera
 ```
 teacher-automation/
 ├── run_activity.py              # Script principal CLI
-├── convert_to_pdf.py            # Utilidad de conversión a PDF
 ├── generate_grades_summary.py   # Generador de resumen de calificaciones
+├── generate_feedback_pdf.py     # Generador de PDF desde JSON
 ├── review_submissions.py        # Revisor de entregas
-├── run_pdf_feedback.py          # Generador de PDF desde JSON
+├── .env                         # API keys (no commitear)
 │
-├── src/teacher_automation/
+├── src/
 │   ├── config/
 │   │   ├── courses/
-│   │   │   └── FI08.yml         # Configuración del curso
+│   │   │   ├── FI06.yml         # Definición Teórico Conceptual
+│   │   │   ├── FI08.yml         # Diseño Metodológico
+│   │   │   └── FI09.yml         # Aplicación y validación de instrumentos
 │   │   ├── prompts/
 │   │   │   ├── retroalimentacion_formativa.txt
-│   │   │   └── retroalimentacion_foro.txt
+│   │   │   ├── retroalimentacion_formativa_v2.txt
+│   │   │   ├── retroalimentacion_foro.txt
+│   │   │   └── retroalimentacion_presentacion.txt
 │   │   └── rubrics/
 │   │       ├── rubric_escrito_uca_ead.json
 │   │       ├── rubric_foros_general.json
-│   │       ├── rubric_propuesta_objetivos.json
+│   │       ├── rubric_consulta_articulos.json
+│   │       ├── rubric_consulta_articulos_fi06.json
 │   │       └── [otras rúbricas...]
 │   │
 │   ├── grading/
 │   │   ├── generate_feedback.py  # Generación de retroalimentación con IA
 │   │   ├── grader.py             # Lógica de calificación
 │   │   └── feedback.py           # Utilidades de feedback
+│   │
+│   ├── llm/
+│   │   └── client.py             # Cliente LLM (Anthropic / DeepSeek)
 │   │
 │   ├── manual/
 │   │   └── manual_review.py      # Módulo de revisión manual/híbrida
@@ -89,10 +97,11 @@ teacher-automation/
 │   │   └── pdf_generator.py      # Generador de PDFs
 │   │
 │   ├── processing/
-│   │   ├── extractor.py          # Extractor de contenido
+│   │   ├── extractor.py          # Extractor de archivos/ZIPs
 │   │   ├── filenames.py          # Limpieza de nombres de archivo
 │   │   ├── filetypes.py          # Detección de tipos de archivo
-│   │   └── parser.py             # Parser de documentos (PDF, DOCX, DOC)
+│   │   ├── parser.py             # Parser de documentos (PDF, DOCX, DOC)
+│   │   └── submissions.py        # Extracción estructurada de tablas
 │   │
 │   ├── moodle/                   # Integración con Moodle (API)
 │   └── utils/                    # Utilidades generales
@@ -158,14 +167,16 @@ teacher-automation/
 │     1.3 --dir ~/Downloads/entregas --hybrid                    │
 │                          ↓                                      │
 │  2. Para CADA estudiante:                                       │
-│     a) El sistema convierte el archivo a PDF (si es DOCX)      │
-│     b) Abre el visor de PDF (evince/okular)                    │
-│     c) El tutor revisa formato visual                          │
-│     d) El tutor ingresa puntajes manuales para:                │
+│     a) El sistema abre el documento en el visor correspondiente │
+│        • Linux nativo: evince / okular / xdg-open              │
+│        • WSL2: abre en la app de Windows por defecto           │
+│          (Word para .docx, Acrobat/Foxit para .pdf)            │
+│     b) El tutor revisa formato visual                          │
+│     c) El tutor ingresa puntajes manuales para:                │
 │        • Formato, ortografía y gramática                        │
 │        • Referencias (sangría francesa, APA, URLs)             │
-│     e) Claude evalúa los criterios de contenido                │
-│     f) Se fusionan puntajes manuales + IA                      │
+│     d) Claude evalúa los criterios de contenido                │
+│     e) Se fusionan puntajes manuales + IA                      │
 │                          ↓                                      │
 │  3. Se genera JSON y PDF con retroalimentación completa        │
 └─────────────────────────────────────────────────────────────────┘
@@ -213,7 +224,8 @@ python run_activity.py [opciones]
 | `--dir` | `-d` | Sí | Ruta al directorio o archivo ZIP con las entregas de estudiantes. |
 | `--rename` | - | No | Limpia y renombra archivos antes de procesar (elimina metadatos de Moodle). |
 | `--hybrid` | - | No | Activa modo híbrido: evaluación IA + revisión manual de formato. |
-| `--model` | - | No | Modelo de Claude a usar. Default: `claude-sonnet-4-20250514`. |
+| `--provider` | - | No | Proveedor de IA: `anthropic` (default) o `deepseek`. |
+| `--model` | - | No | Modelo a usar. Default: `claude-sonnet-4-6` (Anthropic) o `deepseek-chat` (DeepSeek). |
 | `--debug` | - | No | Muestra información detallada de depuración. |
 | `--no-pdf` | - | No | No generar PDFs de retroalimentación (solo JSON). |
 
@@ -252,7 +264,13 @@ python run_activity.py --course FI08 --unit 1 --activity 1.1 \
 #### Uso con modelo diferente
 ```bash
 python run_activity.py --course FI08 --unit 1 --activity 1.1 \
-                       --dir ~/Downloads/entregas --model claude-3-5-sonnet-20241022
+                       --dir ~/Downloads/entregas --model claude-sonnet-4-6
+```
+
+#### Uso con DeepSeek en lugar de Anthropic
+```bash
+python run_activity.py --course FI08 --unit 1 --activity 1.1 \
+                       --dir ~/Downloads/entregas --provider deepseek
 ```
 
 ### 4.4 Ingreso de Instrucciones
@@ -390,6 +408,21 @@ Note: Wayland detected - auto window positioning unavailable
 
 Usa los atajos de teclado del sistema para posicionar las ventanas manualmente.
 
+### 5.9 Uso en WSL2 (Windows Subsystem for Linux)
+
+Cuando el sistema detecta que está ejecutándose en WSL2 (verificando si `/proc/version` contiene "microsoft"), abre los archivos automáticamente en Windows usando la aplicación predeterminada:
+
+- **`.docx`** → Microsoft Word
+- **`.pdf`** → Foxit Reader, Adobe Acrobat u otro visor PDF instalado
+
+No es necesario instalar evince ni okular en WSL2. El sistema convierte la ruta Linux a ruta Windows con `wslpath -w` y la abre con `cmd.exe /c start`.
+
+```bash
+# Ejemplo en WSL2: el archivo se abre en Word automáticamente
+python run_activity.py --course FI06 --unit 2 --activity 2.2 \
+                       --dir /mnt/c/Users/TuUsuario/Downloads/entregas --hybrid
+```
+
 ---
 
 ## 6. Generación de PDFs desde JSON
@@ -493,7 +526,7 @@ python run_pdf_feedback.py --json_dir ~/mis_feedbacks_editados
 
 Los archivos de configuración de cursos se encuentran en:
 ```
-src/teacher_automation/config/courses/<CODIGO_CURSO>.yml
+src/config/courses/<CODIGO_CURSO>.yml
 ```
 
 ### 7.2 Estructura del Archivo YAML
@@ -520,8 +553,8 @@ unidades:
         titulo: "Propuesta de objetivos"
         tipo: escrito                    # escrito | foro
         extraer_texto: true              # true para PDF/DOCX, false para texto plano
-        rubrica: "src/teacher_automation/config/rubrics/rubric_propuesta_objetivos.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        rubrica: "src/config/rubrics/rubric_propuesta_objetivos.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           [Instrucciones completas de la actividad...]
 
@@ -529,8 +562,8 @@ unidades:
         titulo: "Foro: Muestreos cuantitativos y cualitativos"
         tipo: foro
         extraer_texto: false
-        rubrica: "src/teacher_automation/config/rubrics/rubric_foros_general.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_foro.txt"
+        rubrica: "src/config/rubrics/rubric_foros_general.json"
+        prompt: "src/config/prompts/retroalimentacion_foro.txt"
         instrucciones: |
           [Instrucciones del foro...]
 ```
@@ -543,6 +576,7 @@ unidades:
 | `titulo` | String | Nombre descriptivo de la actividad. |
 | `tipo` | String | Tipo de actividad: `escrito` o `foro`. |
 | `extraer_texto` | Boolean | `true` para extraer texto de PDF/DOCX, `false` para leer como texto plano. |
+| `extraer_tablas` | Boolean | `true` para extraer tablas estructuradas del documento e inyectarlas en el prompt. Útil en actividades donde el desarrollo es una tabla (ej: consulta de artículos). |
 | `rubrica` | String | Ruta relativa al archivo JSON de la rúbrica. |
 | `prompt` | String | Ruta relativa al archivo de prompt del sistema. |
 | `instrucciones` | String | Instrucciones completas de la actividad (opcional si se ingresan manualmente). |
@@ -557,8 +591,9 @@ unidades:
         titulo: "Nueva actividad"
         tipo: escrito
         extraer_texto: true
-        rubrica: "src/teacher_automation/config/rubrics/rubric_nueva.json"
-        prompt: "src/teacher_automation/config/prompts/retroalimentacion_formativa.txt"
+        extraer_tablas: true          # Agregar si el desarrollo principal es una tabla
+        rubrica: "src/config/rubrics/rubric_nueva.json"
+        prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
           Instrucciones de la nueva actividad...
 ```
@@ -567,9 +602,9 @@ unidades:
 
 ### 7.5 Añadir Nuevo Curso
 
-1. Crear archivo `src/teacher_automation/config/courses/<CODIGO>.yml`
-2. Seguir la estructura mostrada en 5.2
-3. Crear las rúbricas necesarias en `config/rubrics/`
+1. Crear archivo `src/config/courses/<CODIGO>.yml`
+2. Seguir la estructura mostrada en 7.2
+3. Crear las rúbricas necesarias en `src/config/rubrics/`
 
 ---
 
@@ -657,11 +692,13 @@ Cuando el texto se extrae de PDF/DOCX, los siguientes criterios **no pueden eval
 
 ### 8.4 Crear Nueva Rúbrica
 
-1. Crear archivo JSON en `src/teacher_automation/config/rubrics/`
-2. Seguir la estructura de 6.1
+1. Crear archivo JSON en `src/config/rubrics/`
+2. Seguir la estructura de 8.1
 3. Asegurar que los nombres de criterios sean descriptivos
 4. Los niveles deben estar ordenados de mayor a menor puntaje
 5. Referenciar la rúbrica en el YAML del curso
+
+**Nota sobre totales:** Los puntajes de los criterios **no necesitan sumar exactamente 100**. El sistema normaliza automáticamente dividiendo el puntaje obtenido entre el máximo posible: `calificación = (obtenido / máximo_total) × 100`. Por ejemplo, una rúbrica con criterios que suman 105 puntos calculará correctamente una calificación sobre 100.
 
 ---
 
@@ -704,7 +741,7 @@ Los prompts definen el comportamiento y personalidad del modelo de IA al generar
 
 Para crear un nuevo prompt:
 
-1. Crear archivo `.txt` en `src/teacher_automation/config/prompts/`
+1. Crear archivo `.txt` en `src/config/prompts/`
 2. Incluir instrucciones claras sobre:
    - Rol del evaluador
    - Criterios a considerar
@@ -896,24 +933,30 @@ python run_activity.py --course FI08 --unit 1 --activity 1.1 \
 - Asegurar que `niveles` sea un array de objetos con `score` y `descripcion`
 
 ```bash
-python -c "import json; json.load(open('src/teacher_automation/config/rubrics/mi_rubrica.json'))"
+python -c "import json; json.load(open('src/config/rubrics/mi_rubrica.json'))"
 ```
 
-### 12.3 Error con ANTHROPIC_API_KEY
+### 12.3 Error con API Keys
 
-**Síntoma:** `RuntimeError: ANTHROPIC_API_KEY no está definido`
+**Síntoma:** `RuntimeError: ANTHROPIC_API_KEY no está definido` (o `DEEPSEEK_API_KEY`)
 
 **Solución:**
-1. Obtener API key de https://console.anthropic.com/
-2. Configurar variable de entorno:
+Crear un archivo `.env` en el directorio raíz del proyecto:
 
 ```bash
-# Linux/Mac (añadir a ~/.bashrc o ~/.zshrc)
-export ANTHROPIC_API_KEY='sk-ant-api03-...'
-
-# O crear archivo .env en el directorio del proyecto
-echo "ANTHROPIC_API_KEY=sk-ant-api03-..." > .env
+# .env
+ANTHROPIC_API_KEY=sk-ant-api03-...
+DEEPSEEK_API_KEY=sk-...       # Solo si se usa --provider deepseek
 ```
+
+O exportar como variable de entorno:
+
+```bash
+# Linux/Mac/WSL2 (añadir a ~/.bashrc o ~/.zshrc)
+export ANTHROPIC_API_KEY='sk-ant-api03-...'
+```
+
+**Nota:** El archivo `.env` nunca debe subirse a Git (ya está en `.gitignore`).
 
 ### 12.4 Errores en Extracción de Texto
 
@@ -978,9 +1021,9 @@ Al revisar y ajustar la retroalimentación generada:
 Antes de procesar una actividad:
 
 1. Revisar que la rúbrica cubra todos los aspectos de las instrucciones
-2. Verificar que los puntajes máximos sumen 100 (o el total deseado)
-3. Confirmar que los niveles de la rúbrica sean progresivos
-4. Validar que las descripciones de niveles sean claras y diferenciables
+2. Confirmar que los niveles de la rúbrica sean progresivos
+3. Validar que las descripciones de niveles sean claras y diferenciables
+4. El total de puntajes no necesita ser exactamente 100; el sistema normaliza automáticamente
 
 ### 13.3 Organizar Flujos de Calificación Semanales
 
@@ -1043,6 +1086,9 @@ python run_activity.py -c FI08 -u 1 -a 1.1 -d ~/entregas --rename
 # Modo híbrido (formato APA)
 python run_activity.py -c FI08 -u 1 -a 1.3 -d ~/entregas --hybrid
 
+# Usar DeepSeek en lugar de Anthropic
+python run_activity.py -c FI08 -u 1 -a 1.1 -d ~/entregas --provider deepseek
+
 # Solo generar JSON (sin PDF)
 python run_activity.py -c FI08 -u 1 -a 1.1 -d ~/entregas --no-pdf
 
@@ -1065,5 +1111,5 @@ python convert_to_pdf.py --dir ~/Downloads/entregas
 ---
 
 **Teacher-Automation** - Sistema de Retroalimentación Formativa Automatizada
-Versión del manual: 1.0
-Última actualización: Diciembre 2025
+Versión del manual: 1.1
+Última actualización: Marzo 2026
