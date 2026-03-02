@@ -118,13 +118,19 @@ def extract_student_name_from_file(file_path: Path) -> str:
     """
     Extrae el nombre del estudiante del nombre del archivo.
 
+    Maneja nombres Moodle como:
+      "JUAN PEREZ_123456_assignsubmission_file_informe.pdf" -> "JUAN_PEREZ"
+
     Args:
         file_path: Ruta al archivo
 
     Returns:
-        Nombre del estudiante (stem del archivo)
+        Nombre del estudiante limpio (sin metadatos de Moodle)
     """
-    return file_path.stem
+    from src.processing.filenames import extract_student_name as _extract
+    raw = _extract(file_path.name)
+    # Convert spaces to underscores for a valid identifier
+    return raw.replace(" ", "_")
 
 
 def extract_text_from_file(file_path: Path) -> str:
@@ -403,6 +409,11 @@ especificado y generará retroalimentación para cada uno.
         "--rename",
         action="store_true",
         help="Limpiar y renombrar archivos antes de procesar",
+    )
+    parser.add_argument(
+        "--force-extract",
+        action="store_true",
+        help="Re-extraer ZIP aunque el directorio ya exista (sobreescribe archivos existentes)",
     )
     parser.add_argument(
         "--provider",
@@ -778,22 +789,35 @@ especificado y generará retroalimentación para cada uno.
     # If it's a ZIP file, extract it
     if input_path.is_file() and input_path.suffix.lower() == ".zip":
         import zipfile
-        import tempfile
 
-        print(f"\n📦 Extrayendo ZIP: {input_path.name}")
-
-        # Extract to a temp directory next to the zip
+        # Extract to a directory next to the zip
         extract_dir = input_path.parent / input_path.stem
         extract_dir.mkdir(exist_ok=True)
 
-        try:
-            with zipfile.ZipFile(input_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_dir)
-            print(f"✓ Extraído a: {extract_dir}")
+        # Check if directory already has submission files
+        existing_files = []
+        for ext in SUPPORTED_EXTENSIONS:
+            existing_files.extend(extract_dir.glob(f"*{ext}"))
+            existing_files.extend(extract_dir.glob(f"*{ext.upper()}"))
+        # Also check one level deep (Moodle sometimes nests files)
+        for ext in SUPPORTED_EXTENSIONS:
+            existing_files.extend(extract_dir.glob(f"**/*{ext}"))
+
+        if existing_files and not args.force_extract:
+            print(f"\n📁 Usando directorio ya extraído: {extract_dir}")
+            print(f"   ({len(existing_files)} archivos encontrados)")
+            print(f"   Usa --force-extract para re-extraer el ZIP completo")
             submissions_dir = extract_dir
-        except zipfile.BadZipFile:
-            print(f"\n✗ Error: Archivo ZIP inválido: {input_path}", file=sys.stderr)
-            sys.exit(1)
+        else:
+            print(f"\n📦 Extrayendo ZIP: {input_path.name}")
+            try:
+                with zipfile.ZipFile(input_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                print(f"✓ Extraído a: {extract_dir}")
+                submissions_dir = extract_dir
+            except zipfile.BadZipFile:
+                print(f"\n✗ Error: Archivo ZIP inválido: {input_path}", file=sys.stderr)
+                sys.exit(1)
     elif input_path.is_dir():
         submissions_dir = input_path
     else:
