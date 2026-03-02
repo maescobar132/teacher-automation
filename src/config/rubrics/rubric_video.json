@@ -1,0 +1,161 @@
+{
+  "nombre": "Rúbrica para video",
+  "criterios": [
+    {
+      "nombre": "Portada",
+      "maximo": 5,
+      "niveles": [
+        {
+          "score": 5,
+          "descripcion": "Presenta de 7 a 6 elementos: -Nombre de la institución. -Nombre del curso. -Nombre de la asignatura. -Nombre de la actividad. -Nombre del tutor. -Nombre del alumno. -Fecha."
+        },
+        {
+          "score": 4,
+          "descripcion": "Presenta de 5 a 4 elementos"
+        },
+        {
+          "score": 3,
+          "descripcion": "Presenta de 3 a 2 elementos"
+        },
+        {
+          "score": 2,
+          "descripcion": "No presenta elementos"
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    },
+    {
+      "nombre": "Introducción",
+      "maximo": 10,
+      "niveles": [
+        {
+          "score": 10,
+          "descripcion": "El contenido se presenta parafraseado y con fundamento teórico Se incluye en una diapositiva Refleja una clara descripción de la actividad Presenta coherencia y claridad con el contenido Vincula la introducción con el problema de estudio Cita conforme APA Presenta el contenido justificado"
+        },
+        {
+          "score": 8,
+          "descripcion": "Presenta en algunas ideas fundamento teórico Se incluye en una diapositiva No refleja en su totalidad una clara comprensión de la actividad No es del todo coherente y claro el contenido Presenta elementos que se relacionan con el problema de estudio Cita mayormente conforme APA En su mayoría se presenta el contenido justificado"
+        },
+        {
+          "score": 6,
+          "descripcion": "La mayoría de las ideas carecen de fundamento teórico Se incluye en más de una diapositiva Presenta de manera simple la descripción de la actividad No es claro y coherente el argumento Son mínimos los elementos que presenta que se relacionen con el tema de estudio Es mínima la citación conforme APA Es mínimo el contenido justificado"
+        },
+        {
+          "score": 4,
+          "descripcion": "Las afirmaciones no presentan fundamento teórico Se presenta en dos diapositivas No presenta la descripción de la actividad Carece de coherencia y claridad No se relaciona el contenido con el tema de estudio No cita conforme APA El contenido no se presenta justificado"
+        },
+        {
+          "score": 0,
+          "descripcion": "Presenta una cantidad considerable de plagio"
+        }
+      ]
+    },
+    {
+      "nombre": "Desarrollo de la actividad",
+      "maximo": 50,
+      "niveles": [
+        {
+          "score": 50,
+          "descripcion": "Es atractivo y dinámico Dura 5 minutos Presenta visualmente ideas y conceptos Incluye imágenes que contribuyen a la explicación científica Es claro y conciso No satura de contenido las diapositivas Sintetiza lo aprendido con claridad Integra creativamente texto, imagen, video y sonido. Evidencia la apropiación y comprensión del contenido"
+        },
+        {
+          "score": 40,
+          "descripcion": "Es mayormente atractivo y dinámico Dura entre 5 y 6 minutos Presenta en su mayoría ideas y conceptos No incluye en su totalidad imágenes que contribuyen a la explicación científica La mayor cantidad de contenido es claro y conciso La mayoría de las diapositivas no presenta saturación de contenido La mayor parte de la presentación integra el contenido sintetizado con lo aprendido Integra en su mayoría creativamente texto, imagen, video y sonido Evidencia la apropiación y comprensión de casi todo el contenido"
+        },
+        {
+          "score": 30,
+          "descripcion": "Solo algún contenido es atractivo y dinámico Dura entre 6 y 7 minutos Es mínima la presentación de ideas y conceptos La mayoría de las imágenes no contribuyen a la explicación científica Presenta ideas ambiguas y divaga en la concreción del tema La mayoría de las diapositivas están saturadas de contenido En algunas diapositivas el contenido no está sintetizado con lo aprendido Es mínima la integración creativa de texto, imagen, video y sonido Evidencia en algunas diapositivas la apropiación y comprensión del contenido"
+        },
+        {
+          "score": 20,
+          "descripcion": "No es atractivo ni dinámico Dura más de 7 minutos No presenta ideas y conceptos Las imágenes no contribuyen a la explicación científica Es ambiguo y divaga Todas las diapositivas están saturadas de contenido No sintetiza el contenido con lo aprendido No integra creativamente texto, imagen, video y sonido Lee todo el contenido No evidencia apropiación y comprensión del contenido"
+        },
+        {
+          "score": 10,
+          "descripcion": "Presenta una cantidad considerable de plagio"
+        }
+      ]
+    },
+    {
+      "nombre": "Conclusiones",
+      "maximo": 20,
+      "niveles": [
+        {
+          "score": 20,
+          "descripcion": "La conclusión es personal y presenta fundamento parafraseado y cita conforme APA Es exclusiva de la presente actividad Se incluye en una diapositiva Refleja el conocimiento y razonamiento de la actividad Vincula la conclusión con su tema de investigación"
+        },
+        {
+          "score": 15,
+          "descripcion": "La conclusión es mayormente personal y presenta fundamento parafraseado y cita conforme APA Es exclusiva de la presente actividad Se incluye en una diapositiva Refleja el conocimiento y razonamiento de la actividad Vincula la conclusión con su tema de investigación"
+        },
+        {
+          "score": 10,
+          "descripcion": "La conclusión incluye citas textuales pero cita conforme APA Mayormente hace referencia al desarrollo de la actividad Se incluye en más de una diapositiva No refleja en su totalidad el conocimiento o razonamiento de la actividad La conclusión plantea una mínima vinculación con el tema de investigación"
+        },
+        {
+          "score": 5,
+          "descripcion": "Se incluye contenido textual en su mayoría y no cita conforme APA Mínimamente hace referencia al desarrollo de la actividad Se presenta en dos diapositivas No mantiene relación con el conocimiento y razonamiento de la actividad No establece una relación con el tema de investigación"
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    },
+    {
+      "nombre": "Formato, ortografía y gramática",
+      "maximo": 5,
+      "niveles": [
+        {
+          "score": 5,
+          "descripcion": "Utiliza la plantilla institucional Está escrito en Arial o Times New Roman 12 puntos Las diapositivas están numeradas en la parte inferior derecha Sin errores de redacción (ortografía y gramática) Presenta el texto justificado"
+        },
+        {
+          "score": 4,
+          "descripcion": "Utiliza la plantilla institucional Está escrito en Arial o Times New Roman Las diapositivas están numeradas en la parte inferior derecha Con algunos (al menos 1) errores de redacción (ortografía y gramática) Mayormente justifica el texto"
+        },
+        {
+          "score": 3,
+          "descripcion": "No utiliza la plantilla institucional No está escrito en Arial o Times New Roman Las diapositivas no están numeradas en la parte inferior derecha Varios errores (entre 2 y 6) de redacción (ortografía y gramática) La mitad del texto está justificado"
+        },
+        {
+          "score": 2,
+          "descripcion": "No utiliza la plantilla institucional No está escrito en Arial o Times New Roman Las diapositivas no están numeradas en la parte inferior derecha Muchos errores de redacción (entre 6 y 10) (ortografía y gramática) Justifica mínimamente el texto"
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    },
+    {
+      "nombre": "Referencias",
+      "maximo": 5,
+      "niveles": [
+        {
+          "score": 5,
+          "descripcion": "Se nombra el apartado como Referencias. Se escriben atendiendo los criterios de APA Se presentan en orden alfabético Se colocan con sangría francesa Todas las referencias se citan en la presentación Tienen un interlineado de 1.0 Se alinean a la izquierda"
+        },
+        {
+          "score": 4,
+          "descripcion": "Se nombra el apartado como Referencias. En su mayoría se escriben atendiendo los criterios de APA La mayoría se presenta en orden alfabético La mayoría se coloca con sangría francesa Casi todas las referencias se citan en la presentación No todas presentan un interlineado de 1.0 Mayormente se alinean a la izquierda"
+        },
+        {
+          "score": 3,
+          "descripcion": "No se nombra el apartado como Referencias. Solo algunas las que se escriben atendiendo los criterios de APA No organizan en su totalidad por orden alfabético Solo algunas se colocan con sangría francesa Solo algunas referencias se citan en la presentación Solo algunas tienen un interlineado de 1.0 Solo algunas se alinean a la izquierda"
+        },
+        {
+          "score": 2,
+          "descripcion": "No se nombra el apartado como Referencias. Son mínimas las que se escriben atendiendo los criterios de APA Son mínimas las que se organizan en orden alfabético Son mínimas las que se colocan con sangría francesa Son mínimas las referencias que se citan en la presentación No tienen un interlineado de 1.0 No están alineadas a la izquierda"
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    }
+  ]
+}

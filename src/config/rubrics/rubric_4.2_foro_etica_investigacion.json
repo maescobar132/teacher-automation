@@ -1,0 +1,57 @@
+{
+  "nombre": "Rúbrica 4.2 Foro: Certificación en ética de investigación o consideraciones éticas del protocolo",
+  "criterios": [
+    {
+      "nombre": "Desarrollo de la actividad",
+      "maximo": 80,
+      "niveles": [
+        {
+          "score": 80,
+          "descripcion": "Comparte la certificación o elabora el escrito de las consideraciones éticas, La retroalimentación sugiere la reflexión. Los argumentos de la retroalimentación están justificados con citas parafraseadas escritas en estilo APA séptima edición. Utiliza lenguaje científico. Ortografía impecable. Gramática impecable. La aportación es respetuosa. La aportación enriquece el conocimiento. La aportación refleja la postura personal frente al tema en cuestión. Las referencias que utiliza se obtuvieron de fuentes formales de información."
+        },
+        {
+          "score": 50,
+          "descripcion": "Comparte la certificación o elabora el escrito de las consideraciones éticas. La retroalimentación sugiere la reflexión del video observado. Los argumentos de la retroalimentación están justificados con citas parafraseadas escritas en estilo APA séptima edición. Utiliza lenguaje científico. Ortografía impecable. Gramática impecable. La aportación es respetuosa. La aportación enriquece el conocimiento."
+        },
+        {
+          "score": 20,
+          "descripcion": "Comparte la certificación o elabora el escrito de las consideraciones éticas. La retroalimentación sugiere la reflexión del video observado. Los argumentos de la retroalimentación están justificados con citas parafraseadas escritas en estilo APA séptima edición. Utiliza lenguaje científico."
+        },
+        {
+          "score": 2,
+          "descripcion": "Ausencia de elementos Más de 5 errores ortográficos y gramática"
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    },
+    {
+      "nombre": "Referencias",
+      "maximo": 20,
+      "niveles": [
+        {
+          "score": 20,
+          "descripcion": "Se nombra el apartado como Referencias. Escritas en estilo APA séptima edición. En orden alfabético. Sangría francesa Todas las referencias escritas en este apartado se encuentran en el contexto. Arial 12 Interlineado 1.0"
+        },
+        {
+          "score": 10,
+          "descripcion": "Se nombra el apartado como Referencias. No escritas en estilo APA séptima edición. En orden alfabético. No todas las referencias escritas en este apartado se encuentran en el contexto. Arial 12 Interlineado 1.0."
+        },
+        {
+          "score": 5,
+          "descripcion": "Se nombra el apartado como Referencias. No escritas en estilo APA séptima edición. En orden alfabético. Arial 12"
+        },
+        {
+          "score": 2,
+          "descripcion": "Se nombra el apartado como Referencias. No escritas en estilo APA séptima edición."
+        },
+        {
+          "score": 0,
+          "descripcion": "Ausencia de elementos"
+        }
+      ]
+    }
+  ]
+}

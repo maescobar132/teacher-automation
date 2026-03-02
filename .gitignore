@@ -215,3 +215,4 @@ outputs_feedback/
 !tsconfig.json
 !pyproject.json
 !src/teacher_automation/config/rubrics/*.json
+!src/config/rubrics/*.json

@@ -169,6 +169,7 @@ unidades:
         titulo: "Tabla de operacionalización"
         tipo: escrito
         extraer_texto: true
+        extraer_tablas: true
         rubrica: "src/config/rubrics/rubric_3.1_tabla_operacionalizacion.json"
         prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |

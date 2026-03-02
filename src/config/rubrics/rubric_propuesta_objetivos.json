@@ -1,0 +1,218 @@
+{
+  "nombre": "Rúbrica para Evaluación de Propuesta de Objetivos - Protocolo de Investigación Doctoral",
+  "descripcion": "Rúbrica analítica para evaluar la formulación de objetivos (general y específicos) en un protocolo de investigación a nivel doctoral en educación.",
+  "nivel": "Doctorado en Educación",
+  "puntaje_total": 100,
+  "criterios": [
+    {
+      "nombre": "Coherencia con el problema de investigación",
+      "descripcion": "El objetivo general responde directamente al problema planteado y mantiene alineación con la pregunta de investigación.",
+      "peso": 20,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 20,
+          "descripcion": "El objetivo general responde de manera precisa y directa al problema de investigación. Existe una alineación clara y explícita entre el problema, la pregunta y el objetivo. La relación es evidente y bien fundamentada."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 15,
+          "descripcion": "El objetivo general se relaciona con el problema de investigación, aunque la conexión podría ser más explícita. Hay coherencia general, pero algunos elementos podrían articularse mejor."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 10,
+          "descripcion": "El objetivo general tiene relación parcial con el problema. Se identifican inconsistencias o desalineaciones que requieren ajustes para lograr mayor coherencia."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 5,
+          "descripcion": "El objetivo general no responde claramente al problema de investigación. La desconexión es evidente y afecta la viabilidad del estudio."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No se presenta objetivo general o este es completamente incoherente con el problema planteado."
+        }
+      ]
+    },
+    {
+      "nombre": "Formulación técnica del objetivo general",
+      "descripcion": "El objetivo general está redactado correctamente: inicia con verbo en infinitivo, es claro, medible, alcanzable y delimita el alcance del estudio.",
+      "peso": 15,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 15,
+          "descripcion": "El objetivo general inicia con un verbo en infinitivo apropiado para el nivel doctoral (analizar, comprender, interpretar, evaluar, desarrollar). Es claro, preciso, medible y alcanzable. Delimita adecuadamente el alcance temporal, espacial y poblacional del estudio."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 11,
+          "descripcion": "El objetivo general está bien formulado con verbo en infinitivo adecuado. Es claro y alcanzable, aunque podría ser más preciso en la delimitación del alcance."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 8,
+          "descripcion": "El objetivo general presenta estructura básica correcta, pero el verbo utilizado no corresponde al nivel doctoral o la redacción es ambigua. Requiere ajustes en precisión o delimitación."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 4,
+          "descripcion": "El objetivo general presenta problemas estructurales significativos: no inicia con verbo en infinitivo, es demasiado amplio, vago o no es medible."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No se presenta objetivo general o la formulación es completamente incorrecta."
+        }
+      ]
+    },
+    {
+      "nombre": "Pertinencia y articulación de objetivos específicos",
+      "descripcion": "Los objetivos específicos se derivan lógicamente del objetivo general, son coherentes entre sí y en conjunto permiten alcanzar el objetivo general.",
+      "peso": 20,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 20,
+          "descripcion": "Los objetivos específicos se derivan lógicamente del objetivo general y cubren todas sus dimensiones. Están articulados de manera secuencial o complementaria. En conjunto, su cumplimiento garantiza el logro del objetivo general."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 15,
+          "descripcion": "Los objetivos específicos se relacionan con el objetivo general y muestran buena articulación. Podrían faltar uno o dos aspectos menores para cubrir completamente el alcance del objetivo general."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 10,
+          "descripcion": "Los objetivos específicos tienen relación con el objetivo general, pero la derivación lógica no es clara o hay vacíos importantes. Algunos objetivos podrían ser redundantes o no aportar al logro del objetivo general."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 5,
+          "descripcion": "Los objetivos específicos no se derivan claramente del objetivo general o son inconsistentes entre sí. Su cumplimiento no garantizaría el logro del objetivo general."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No se presentan objetivos específicos o estos son completamente incoherentes."
+        }
+      ]
+    },
+    {
+      "nombre": "Formulación técnica de objetivos específicos",
+      "descripcion": "Cada objetivo específico está correctamente redactado: verbo en infinitivo, claridad, precisión, y viabilidad operativa.",
+      "peso": 15,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 15,
+          "descripcion": "Todos los objetivos específicos inician con verbos en infinitivo apropiados y diferenciados. Son claros, precisos, operacionalizables y viables. Cada uno representa una acción concreta y medible."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 11,
+          "descripcion": "La mayoría de los objetivos específicos están bien formulados. Alguno podría mejorar en precisión o en la selección del verbo, pero en general son operacionalizables."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 8,
+          "descripcion": "Los objetivos específicos presentan estructura básica, pero varios tienen problemas de formulación: verbos repetitivos, redacción ambigua o dificultad para operacionalizarlos."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 4,
+          "descripcion": "Los objetivos específicos presentan problemas graves de formulación. No son claros, medibles ni operacionalizables."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No se presentan objetivos específicos o la formulación es completamente incorrecta."
+        }
+      ]
+    },
+    {
+      "nombre": "Congruencia con el enfoque metodológico",
+      "descripcion": "Los objetivos son congruentes con el enfoque metodológico propuesto (cualitativo, cuantitativo o mixto) y el tipo de estudio.",
+      "peso": 15,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 15,
+          "descripcion": "Los objetivos reflejan claramente el enfoque metodológico del estudio. Los verbos y alcances son coherentes con la naturaleza cualitativa, cuantitativa o mixta de la investigación. Se evidencia articulación entre objetivos y diseño metodológico."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 11,
+          "descripcion": "Los objetivos son mayormente congruentes con el enfoque metodológico. Algún objetivo podría requerir ajustes menores para alinearse mejor con el tipo de estudio propuesto."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 8,
+          "descripcion": "Existe congruencia parcial entre objetivos y enfoque metodológico. Algunos objetivos sugieren un enfoque diferente al declarado o requieren reformulación para ser coherentes con el diseño."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 4,
+          "descripcion": "Los objetivos son incongruentes con el enfoque metodológico propuesto. Los verbos o alcances corresponden a un paradigma diferente al declarado."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No es posible evaluar la congruencia por ausencia de información o incoherencia total."
+        }
+      ]
+    },
+    {
+      "nombre": "Nivel de profundidad doctoral",
+      "descripcion": "Los objetivos reflejan el nivel de complejidad, originalidad y aporte al conocimiento esperado en una investigación doctoral.",
+      "peso": 15,
+      "niveles": [
+        {
+          "nivel": "Excelente",
+          "puntaje": 15,
+          "descripcion": "Los objetivos evidencian un nivel de complejidad apropiado para el doctorado. Apuntan a la generación de nuevo conocimiento, comprensión profunda de fenómenos o desarrollo de aportes teórico-metodológicos significativos al campo educativo."
+        },
+        {
+          "nivel": "Bueno",
+          "puntaje": 11,
+          "descripcion": "Los objetivos muestran complejidad adecuada para el nivel doctoral. El potencial de aporte al conocimiento es visible, aunque podría explicitarse o profundizarse más."
+        },
+        {
+          "nivel": "Suficiente",
+          "puntaje": 8,
+          "descripcion": "Los objetivos tienen un nivel de complejidad que podría corresponder a maestría o doctorado. Requieren mayor profundización para evidenciar claramente el aporte doctoral."
+        },
+        {
+          "nivel": "Insuficiente",
+          "puntaje": 4,
+          "descripcion": "Los objetivos son demasiado simples o descriptivos para el nivel doctoral. Corresponden más a un nivel de maestría o pregrado."
+        },
+        {
+          "nivel": "No presentado",
+          "puntaje": 0,
+          "descripcion": "No es posible evaluar el nivel de profundidad por ausencia de objetivos o formulación incomprensible."
+        }
+      ]
+    }
+  ],
+  "recomendaciones_generales": [
+    "El objetivo general debe responder a la pregunta: ¿Qué se propone lograr la investigación?",
+    "Utilizar verbos que reflejen el nivel de complejidad doctoral: analizar, comprender, interpretar, evaluar, desarrollar, proponer, construir.",
+    "Evitar verbos como 'conocer', 'saber' o 'estudiar' que son vagos o no medibles.",
+    "Los objetivos específicos deben ser entre 3 y 5, suficientes para abarcar el objetivo general sin ser redundantes.",
+    "Cada objetivo específico debe poder convertirse en un capítulo o sección de resultados.",
+    "Verificar que los verbos de los objetivos específicos sean congruentes con el enfoque metodológico.",
+    "Para estudios cualitativos: comprender, interpretar, describir, explorar, analizar significados.",
+    "Para estudios cuantitativos: determinar, comparar, correlacionar, medir, evaluar efectos.",
+    "Para estudios mixtos: combinar verbos de ambos enfoques según las fases del diseño."
+  ],
+  "metadata": {
+    "version": "1.0",
+    "fecha_creacion": "2024-11-24",
+    "autor": "Sistema de Automatización Docente",
+    "contexto": "Evaluación de protocolos de investigación en programas doctorales en educación",
+    "idioma": "es"
+  }
+}

@@ -243,9 +243,53 @@ def convert_to_pdf(input_file: Path) -> Path:
     )
 
 
+def _is_wsl() -> bool:
+    """Detect if running inside Windows Subsystem for Linux."""
+    try:
+        with open("/proc/version") as f:
+            return "microsoft" in f.read().lower()
+    except OSError:
+        return False
+
+
+def _wsl_open(file_path: Path) -> subprocess.Popen | None:
+    """
+    Open a file using the Windows default application from WSL2.
+
+    Converts the Linux path to a Windows UNC path using wslpath,
+    then launches it with cmd.exe /c start.
+    """
+    try:
+        result = subprocess.run(
+            ["wslpath", "-w", str(file_path)],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode != 0:
+            logger.warning(f"wslpath failed: {result.stderr}")
+            return None
+
+        win_path = result.stdout.strip()
+        logger.info(f"Opening in Windows: {win_path}")
+
+        process = subprocess.Popen(
+            ["cmd.exe", "/c", "start", "", win_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        time.sleep(1)
+        return process
+
+    except Exception as e:
+        logger.warning(f"WSL open failed: {e}")
+        return None
+
+
 def open_document(file_path: Path, wait: bool = True) -> subprocess.Popen | None:
     """
     Open a document file (PDF, DOCX, DOC) in the default viewer.
+
+    Detects WSL2 and uses the Windows default application via cmd.exe.
+    On native Linux, tries evince, okular, then xdg-open.
 
     Args:
         file_path: Path to the document file to open
@@ -265,62 +309,61 @@ def open_document(file_path: Path, wait: bool = True) -> subprocess.Popen | None
 
     logger.info(f"Opening document: {file_path.name}")
 
-    # For PDF files, try dedicated PDF viewers first
-    if file_path.suffix.lower() == ".pdf":
-        viewers = ["evince", "okular", "xdg-open"]
+    process = None
+
+    if _is_wsl():
+        process = _wsl_open(file_path)
+        viewer_name = "Windows (cmd.exe start)"
     else:
-        # For other files, use xdg-open which will use default application
-        viewers = ["xdg-open", "libreoffice"]
+        # Native Linux — try dedicated viewers
+        if file_path.suffix.lower() == ".pdf":
+            viewers = ["evince", "okular", "xdg-open"]
+        else:
+            viewers = ["xdg-open", "libreoffice"]
 
-    last_error = None
+        last_error = None
+        viewer_name = None
 
-    for viewer in viewers:
+        for viewer in viewers:
+            try:
+                process = subprocess.Popen(
+                    [viewer, str(file_path)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                time.sleep(0.5)
+                returncode = process.poll()
+                if returncode is not None:
+                    stderr = process.stderr.read().decode("utf-8", errors="ignore")
+                    logger.debug(f"{viewer} exited with code {returncode}: {stderr}")
+                    last_error = stderr
+                    process = None
+                    continue
+                viewer_name = viewer
+                break
+            except FileNotFoundError:
+                logger.debug(f"{viewer} not found, trying next...")
+            except Exception as e:
+                logger.warning(f"Error launching {viewer}: {e}")
+                last_error = str(e)
+
+        if process is None:
+            error_msg = f"Could not open document viewer. Last error: {last_error}" if last_error else "No suitable document viewer found"
+            raise RuntimeError(error_msg)
+
+    logger.info(f"Launched {viewer_name} successfully")
+
+    if wait:
+        time.sleep(1)
+        print(f"\n   >>> Documento abierto con {viewer_name}")
+        print("   >>> Presione Enter cuando termine de revisar el documento <<<\n")
         try:
-            # Try to launch the viewer
-            process = subprocess.Popen(
-                [viewer, str(file_path)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-
-            # Give it a moment to start
-            time.sleep(0.5)
-
-            # Check if process failed immediately
-            returncode = process.poll()
-            if returncode is not None:
-                # Process exited immediately, check stderr
-                stderr = process.stderr.read().decode('utf-8', errors='ignore')
-                logger.debug(f"{viewer} exited with code {returncode}: {stderr}")
-                last_error = stderr
-                continue
-
-            logger.info(f"Launched {viewer} successfully (PID: {process.pid})")
-
-            if wait:
-                # Give the viewer time to fully open
-                time.sleep(1)
-                print(f"\n   >>> Documento abierto con {viewer}")
-                print("   >>> Presione Enter cuando termine de revisar el documento <<<\n")
-                try:
-                    input("   Presione Enter para continuar: ")
-                except (EOFError, KeyboardInterrupt):
-                    print()
-                return None
-            else:
-                return process
-
-        except FileNotFoundError:
-            logger.debug(f"{viewer} not found, trying next...")
-            continue
-        except Exception as e:
-            logger.warning(f"Error launching {viewer}: {e}")
-            last_error = str(e)
-            continue
-
-    # If we get here, all viewers failed
-    error_msg = f"Could not open document viewer. Last error: {last_error}" if last_error else "No suitable document viewer found"
-    raise RuntimeError(error_msg)
+            input("   Presione Enter para continuar: ")
+        except (EOFError, KeyboardInterrupt):
+            print()
+        return None
+    else:
+        return process
 
 
 def open_pdf_viewer(pdf_path: Path, wait: bool = True) -> subprocess.Popen | None:

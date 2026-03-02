@@ -158,25 +158,29 @@ def extract_tables_from_file(file_path: Path) -> list:
     return extract_tables_from_submission(file_path)
 
 
-def build_table_injection_context(tables: list, activity_id: str) -> str:
+def build_table_injection_context(tables: list, activity_id: str, activity: dict | None = None) -> str:
     """
     Construye el contexto de inyección de tablas para el prompt.
 
-    Solo se inyectan tablas para las actividades 3.1 y 3.2 que requieren
-    evaluación de datos estructurados (Tabla de Operacionalización, etc.).
+    Se inyectan tablas si la actividad tiene extraer_tablas: true en su config YAML,
+    o como fallback si el activity_id está en el conjunto legacy {"3.1", "3.2"}.
 
     Args:
         tables: Lista de DataFrames extraídos del documento
         activity_id: ID de la actividad (ej: "3.1", "3.2")
+        activity: Diccionario de configuración de la actividad (del YAML)
 
     Returns:
         Cadena de contexto para inyectar en el prompt, o cadena vacía si
         la actividad no requiere inyección de tablas.
     """
-    # Solo inyectar tablas para actividades que lo requieran
-    ACTIVITIES_REQUIRING_TABLES = {"3.1", "3.2"}
+    # Check YAML config first; fall back to legacy hardcoded set
+    if activity is not None:
+        requires_tables = activity.get("extraer_tablas", False)
+    else:
+        requires_tables = activity_id in {"3.1", "3.2"}
 
-    if activity_id not in ACTIVITIES_REQUIRING_TABLES:
+    if not requires_tables:
         return ""
 
     if not tables:
@@ -942,7 +946,7 @@ especificado y generará retroalimentación para cada uno.
                     print(f"[tablas: {table_err}] ", end="")
 
             # Build table injection context for activities 3.1 and 3.2
-            table_context = build_table_injection_context(tables, args.activity)
+            table_context = build_table_injection_context(tables, args.activity, activity)
 
             # Prepend table context to student text if applicable
             if table_context:

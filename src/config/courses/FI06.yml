@@ -26,6 +26,7 @@ unidades:
         titulo: "Tabla de búsqueda: estudios que conceptualizan la V1 o categoría principal"
         tipo: escrito
         extraer_texto: true
+        extraer_tablas: true
         rubrica: "src/config/rubrics/rubric_consulta_articulos_fi06.json"
         prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
@@ -102,6 +103,7 @@ unidades:
         titulo: "Tabla de búsqueda: estudios que conceptualizan la V2 o categoría secundaria"
         tipo: escrito
         extraer_texto: true
+        extraer_tablas: true
         rubrica: "src/config/rubrics/rubric_consulta_articulos_fi06.json"
         prompt: "src/config/prompts/retroalimentacion_formativa.txt"
         instrucciones: |
