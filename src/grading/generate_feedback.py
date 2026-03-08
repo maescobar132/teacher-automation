@@ -1027,7 +1027,7 @@ def generate_feedback_batch(
     actividad: str,
     activity_instructions: str | None = None,
     descripcion_yaml: str | None = None,
-    provider: str = "deepseek",
+    provider: str = "anthropic",
     model: str | None = None,
     output_base_path: Path | None = None,
     max_tokens: int = 4096,
@@ -1075,7 +1075,7 @@ def generate_feedback_batch(
     # Set default model based on provider if not specified
     if model is None:
         if provider == "anthropic":
-            model = "claude-sonnet-4-20250514"
+            model = "claude-opus-4-5-20251101"
         elif provider == "deepseek":
             model = "deepseek-chat"
         logger.info(f"Usando modelo por defecto: {model}")

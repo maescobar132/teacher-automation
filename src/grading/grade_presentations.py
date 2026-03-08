@@ -140,7 +140,7 @@ def generate_feedback_with_llm(
     scores: dict[str, tuple[int, str]],
     prompt_template: str,
     presentation_text: str = "",
-    provider: str = "deepseek",
+    provider: str = "anthropic",
     model: str | None = None,
     temperature: float = 1.0,
 ) -> dict[str, Any]:

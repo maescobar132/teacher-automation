@@ -46,7 +46,7 @@ class LLMClient:
                 raise RuntimeError("ANTHROPIC_API_KEY not set")
 
             self.client = Anthropic(api_key=api_key)
-            self.model = model or "claude-sonnet-4-20250514"
+            self.model = model or "claude-sonnet-4-6"
 
         elif self.provider == "deepseek":
             from openai import OpenAI

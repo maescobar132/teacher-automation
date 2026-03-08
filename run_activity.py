@@ -417,9 +417,9 @@ especificado y generará retroalimentación para cada uno.
     )
     parser.add_argument(
         "--provider",
-        default="deepseek",
+        default="anthropic",
         choices=["anthropic", "deepseek"],
-        help="Proveedor de LLM (default: deepseek)",
+        help="Proveedor de LLM (default: anthropic)",
     )
     parser.add_argument(
         "--model",
@@ -1113,8 +1113,15 @@ especificado y generará retroalimentación para cada uno.
                     original_file = original_file_map.get(archivo_original)
                     is_last = (i == len(submissions))
 
+                    # Skip already-processed students
+                    json_path = output_dir / f"{student_name}.json"
+                    if json_path.exists():
+                        print(f"\n  ⊘ [{i}/{len(submissions)}] {student_name.replace('_', ' ')} - ya procesado, omitiendo")
+                        successful += 1
+                        continue
+
                     print(f"\n{'=' * 60}")
-                    print(f"[{i}/{len(submissions)}] PROCESANDO: {student_name}")
+                    print(f"[{i}/{len(submissions)}] PROCESANDO: {student_name.replace('_', ' ')}")
                     print(f"{'=' * 60}")
 
                     try:
@@ -1122,6 +1129,12 @@ especificado y generará retroalimentación para cada uno.
                         print("\n1. Abriendo documento para revisión...")
                         if original_file and original_file.exists():
                             try:
+                                # Rename file to clean student name for readable title in viewer
+                                clean_file = original_file.parent / f"{student_name}{original_file.suffix}"
+                                if clean_file != original_file and not clean_file.exists():
+                                    original_file.rename(clean_file)
+                                    original_file = clean_file
+
                                 if original_file.suffix.lower() in ['.docx', '.doc']:
                                     pdf_path = convert_to_pdf(original_file)
                                     print(f"   Conversión exitosa: {pdf_path.name}")
