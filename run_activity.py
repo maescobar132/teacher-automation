@@ -1115,6 +1115,8 @@ especificado y generará retroalimentación para cada uno.
 
                     # Skip already-processed students
                     json_path = output_dir / f"{student_name}.json"
+                    manual_checkpoint_path = output_dir / f"{student_name}.manual.json"
+
                     if json_path.exists():
                         print(f"\n  ⊘ [{i}/{len(submissions)}] {student_name.replace('_', ' ')} - ya procesado, omitiendo")
                         successful += 1
@@ -1125,76 +1127,101 @@ especificado y generará retroalimentación para cada uno.
                     print(f"{'=' * 60}")
 
                     try:
-                        # Step 1: Open document for manual review
-                        print("\n1. Abriendo documento para revisión...")
-                        if original_file and original_file.exists():
-                            try:
-                                # Rename file to clean student name for readable title in viewer
-                                clean_file = original_file.parent / f"{student_name}{original_file.suffix}"
-                                if clean_file != original_file and not clean_file.exists():
-                                    original_file.rename(clean_file)
-                                    original_file = clean_file
-
-                                if original_file.suffix.lower() in ['.docx', '.doc']:
-                                    pdf_path = convert_to_pdf(original_file)
-                                    print(f"   Conversión exitosa: {pdf_path.name}")
-                                    open_pdf_viewer(pdf_path, wait=True)
-                                else:
-                                    open_pdf_viewer(original_file, wait=True)
-                            except Exception as e:
-                                print(f"   ⚠ No se pudo convertir/abrir PDF: {e}")
-                                print(f"   Intentando abrir documento original con visor por defecto...")
-                                try:
-                                    from src.manual.manual_review import open_document
-                                    open_document(original_file, wait=True)
-                                except Exception as e2:
-                                    print(f"   ⚠ No se pudo abrir documento: {e2}")
-                                    print("   Continuando con evaluación manual sin visor...")
+                        # Resume from manual checkpoint if it exists (interrupted after manual, before AI save)
+                        if manual_checkpoint_path.exists():
+                            print("\n  ↩ Checkpoint manual encontrado, reanudando desde AI...")
+                            with manual_checkpoint_path.open("r", encoding="utf-8") as f:
+                                checkpoint = json.load(f)
+                            manual_result = checkpoint["manual_result"]
+                            manual_scores_for_ai = checkpoint["manual_scores_for_ai"]
+                            submission_with_manual = submission.copy()
+                            submission_with_manual["manual_scores"] = manual_scores_for_ai
+                            submission_with_manual["citas_textuales_check"] = checkpoint["citas_check"]
                         else:
-                            print(f"   ⚠ Archivo original no encontrado: {archivo_original}")
+                            # Step 1: Open document for manual review
+                            print("\n1. Abriendo documento para revisión...")
+                            if original_file and original_file.exists():
+                                try:
+                                    # Rename file to clean student name for readable title in viewer
+                                    clean_file = original_file.parent / f"{student_name}{original_file.suffix}"
+                                    if clean_file != original_file and not clean_file.exists():
+                                        original_file.rename(clean_file)
+                                        original_file = clean_file
 
-                        # Step 2: Ask about citas textuales
-                        print("\n2. Verificación de citas textuales...")
-                        citas_check = prompt_citas_textuales_check()
+                                    if original_file.suffix.lower() in ['.docx', '.doc']:
+                                        pdf_path = convert_to_pdf(original_file)
+                                        print(f"   Conversión exitosa: {pdf_path.name}")
+                                        open_pdf_viewer(pdf_path, wait=True)
+                                    else:
+                                        open_pdf_viewer(original_file, wait=True)
+                                except Exception as e:
+                                    print(f"   ⚠ No se pudo convertir/abrir PDF: {e}")
+                                    print(f"   Intentando abrir documento original con visor por defecto...")
+                                    try:
+                                        from src.manual.manual_review import open_document
+                                        open_document(original_file, wait=True)
+                                    except Exception as e2:
+                                        print(f"   ⚠ No se pudo abrir documento: {e2}")
+                                        print("   Continuando con evaluación manual sin visor...")
+                            else:
+                                print(f"   ⚠ Archivo original no encontrado: {archivo_original}")
 
-                        # Step 3: Prompt for manual scores
-                        print("\n3. Evaluación manual de criterios de formato...")
-                        manual_result = prompt_manual_scores(rubric, valid_format_criteria)
+                            # Step 2: Ask about citas textuales
+                            print("\n2. Verificación de citas textuales...")
+                            citas_check = prompt_citas_textuales_check()
 
-                        # Generate auto scores for criteria like Portada
-                        auto_result = generate_auto_scores(rubric, valid_auto_criteria)
-                        manual_result["scores"].update(auto_result["scores"])
-                        manual_result["comments"].update(auto_result["comments"])
+                            # Step 3: Prompt for manual scores
+                            print("\n3. Evaluación manual de criterios de formato...")
+                            manual_result = prompt_manual_scores(rubric, valid_format_criteria)
 
-                        # Build manual_scores dict for AI
-                        manual_scores_for_ai = {}
-                        for criterio in all_manual_criteria:
-                            criterio_data = next(
-                                (c for c in rubric.get("criterios", []) if c.get("nombre") == criterio),
-                                {}
-                            )
-                            manual_scores_for_ai[criterio] = {
-                                "puntaje": manual_result["scores"].get(criterio, 0),
-                                "maximo": criterio_data.get("puntaje_maximo", 5),
-                                "comentario": manual_result["comments"].get(criterio, ""),
+                            # Generate auto scores for criteria like Portada
+                            auto_result = generate_auto_scores(rubric, valid_auto_criteria)
+                            manual_result["scores"].update(auto_result["scores"])
+                            manual_result["comments"].update(auto_result["comments"])
+
+                            # Build manual_scores dict for AI
+                            manual_scores_for_ai = {}
+                            for criterio in all_manual_criteria:
+                                criterio_data = next(
+                                    (c for c in rubric.get("criterios", []) if c.get("nombre") == criterio),
+                                    {}
+                                )
+                                manual_scores_for_ai[criterio] = {
+                                    "puntaje": manual_result["scores"].get(criterio, 0),
+                                    "maximo": criterio_data.get("puntaje_maximo", 5),
+                                    "comentario": manual_result["comments"].get(criterio, ""),
+                                }
+
+                            # Prepare submission with manual data
+                            submission_with_manual = submission.copy()
+                            submission_with_manual["manual_scores"] = manual_scores_for_ai
+                            submission_with_manual["citas_textuales_check"] = citas_check
+
+                            # Save manual checkpoint immediately so interruption after this point
+                            # won't require re-doing manual review on restart
+                            output_dir.mkdir(parents=True, exist_ok=True)
+                            checkpoint_data = {
+                                "manual_result": manual_result,
+                                "manual_scores_for_ai": manual_scores_for_ai,
+                                "citas_check": citas_check,
                             }
-
-                        # Prepare submission with manual data
-                        submission_with_manual = submission.copy()
-                        submission_with_manual["manual_scores"] = manual_scores_for_ai
-                        submission_with_manual["citas_textuales_check"] = citas_check
+                            tmp_checkpoint = manual_checkpoint_path.with_name(manual_checkpoint_path.name + ".tmp")
+                            with tmp_checkpoint.open("w", encoding="utf-8") as f:
+                                json.dump(checkpoint_data, f, ensure_ascii=False, indent=2)
+                            tmp_checkpoint.replace(manual_checkpoint_path)
+                            print("   ✓ Checkpoint guardado")
 
                         # Step 4: Start AI generation
                         if is_last:
                             # Last student: run synchronously
                             print("\n4. Generando retroalimentación AI...")
                             future = executor.submit(run_ai_generation, submission_with_manual)
-                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future))
+                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future, manual_checkpoint_path))
                         else:
                             # Not last: run in background, continue to next student
                             print("\n4. Iniciando AI en segundo plano...")
                             future = executor.submit(run_ai_generation, submission_with_manual)
-                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future))
+                            pending_ai_tasks.append((student_name, archivo_original, manual_result, future, manual_checkpoint_path))
                             print("   → AI procesando mientras revisas el siguiente documento")
 
                     except Exception as e:
@@ -1215,7 +1242,7 @@ especificado y generará retroalimentación para cada uno.
                 print("PROCESANDO RESULTADOS DE AI...")
                 print("=" * 60)
 
-                for student_name, archivo_original, manual_result, future in pending_ai_tasks:
+                for student_name, archivo_original, manual_result, future, manual_checkpoint_path in pending_ai_tasks:
                     print(f"\n   Esperando AI para: {student_name}...", end=" ", flush=True)
                     try:
                         batch_result = future.result(timeout=300)  # 5 min timeout
@@ -1247,11 +1274,17 @@ especificado y generará retroalimentación para cada uno.
                         feedback["final_total"] = totals["total_obtenido"]
                         feedback["final_maximo"] = totals["total_maximo"]
 
-                        # Save JSON
+                        # Atomic save: write to .tmp then rename to prevent partial writes on interruption
                         output_json_path = output_dir / f"{student_name}.json"
                         output_json_path.parent.mkdir(parents=True, exist_ok=True)
-                        with output_json_path.open("w", encoding="utf-8") as f:
+                        tmp_json_path = output_json_path.with_suffix(".json.tmp")
+                        with tmp_json_path.open("w", encoding="utf-8") as f:
                             json.dump(feedback, f, ensure_ascii=False, indent=2)
+                        tmp_json_path.replace(output_json_path)
+
+                        # Clean up manual checkpoint now that final JSON is safely written
+                        if manual_checkpoint_path.exists():
+                            manual_checkpoint_path.unlink()
 
                         final_score = totals["total_obtenido"]
                         print(f"✓ {final_score}/{totals['total_maximo']}")
