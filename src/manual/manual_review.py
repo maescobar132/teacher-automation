@@ -480,8 +480,11 @@ def prompt_manual_scores(
         while True:
             try:
                 score_input = input(f"\nIngrese puntaje para '{criterio_name}' (0-{maximo}): ").strip()
-                score = int(score_input) if score_input else 0
+                if not score_input:
+                    print("  ⚠ Debes ingresar un puntaje")
+                    continue
 
+                score = int(score_input)
                 if 0 <= score <= maximo:
                     scores[criterio_name] = score
                     break

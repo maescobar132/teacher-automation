@@ -5,6 +5,9 @@ Provides functions for finding and filtering student submission files
 in a directory, with deduplication when multiple formats exist.
 """
 
+from __future__ import annotations
+
+import re
 from pathlib import Path
 
 from .filenames import SUPPORTED_EXTENSIONS
@@ -59,6 +62,82 @@ def get_student_name(file_path: Path) -> str:
     return file_path.stem
 
 
+# --- Table Type Classification ---
+
+# Pattern to detect internal title rows that split a merged Word table
+_INTERNAL_TITLE_RE = re.compile(
+    r"^tabla\s+(n[uú]mero|no\.?)\s*\d+",
+    re.IGNORECASE,
+)
+
+
+def _classify_table_type(title_text: str, num_columns: int) -> str:
+    """
+    Classify a table as CONCEPTUAL or REFERENCIAL based on its title or structure.
+
+    Args:
+        title_text: Text from the first row/cell of the table (the title)
+        num_columns: Number of unique columns in the table
+
+    Returns:
+        "CONCEPTUAL", "REFERENCIAL", or "OTRO"
+    """
+    title_lower = title_text.lower()
+
+    if "conceptual" in title_lower:
+        return "CONCEPTUAL"
+    if "referencial" in title_lower:
+        return "REFERENCIAL"
+
+    # Structural fallback: single-column → conceptual, multi-column → referencial
+    if num_columns == 1:
+        return "CONCEPTUAL"
+    if num_columns >= 4:
+        return "REFERENCIAL"
+
+    return "OTRO"
+
+
+def _is_internal_title_row(row_cells: list[str]) -> bool:
+    """
+    Detect if a row is an internal title that splits a merged Word table.
+
+    Students sometimes place multiple conceptual tables inside a single Word
+    <w:tbl> element, separated by internal title rows like
+    "Tabla número 2: Análisis conceptual sobre..."
+
+    Args:
+        row_cells: List of cell text values for the row
+
+    Returns:
+        True if this row is an internal title separator
+    """
+    # All cells must have the same text (merged row)
+    unique_texts = set(cell.strip() for cell in row_cells if cell.strip())
+    if len(unique_texts) != 1:
+        return False
+
+    text = unique_texts.pop()
+    return bool(_INTERNAL_TITLE_RE.match(text))
+
+
+def _count_unique_columns(table) -> int:
+    """Count unique columns by checking cell spans in the first data row."""
+    if not table.rows:
+        return 0
+    # python-docx may report duplicate cells for merged columns;
+    # count unique cell objects in a row
+    first_row = table.rows[0]
+    seen = set()
+    count = 0
+    for cell in first_row.cells:
+        cell_id = id(cell)
+        if cell_id not in seen:
+            seen.add(cell_id)
+            count += 1
+    return count
+
+
 # --- Table Extraction Functions ---
 
 def _get_table_data_docx(table) -> list[list[str]]:
@@ -78,15 +157,61 @@ def _get_table_data_docx(table) -> list[list[str]]:
     return data
 
 
-def _extract_from_docx(file_path: Path) -> list:
+def _split_merged_table(table_data: list[list[str]]) -> list[tuple[str, list[list[str]]]]:
     """
-    Extract tables from a DOCX file using python-docx.
+    Split a single Word table that contains multiple logical tables
+    separated by internal title rows.
+
+    Args:
+        table_data: 2D list of cell text values
+
+    Returns:
+        List of (title_text, rows) tuples for each logical sub-table
+    """
+    sub_tables: list[tuple[str, list[list[str]]]] = []
+    current_title = ""
+    current_rows: list[list[str]] = []
+
+    for row in table_data:
+        if _is_internal_title_row(row):
+            # Save previous sub-table if it has data
+            if current_rows:
+                sub_tables.append((current_title, current_rows))
+            # Start new sub-table with this title
+            unique_texts = set(cell.strip() for cell in row if cell.strip())
+            current_title = unique_texts.pop() if unique_texts else ""
+            current_rows = []
+        else:
+            # First row of the whole table might be the title
+            if not current_rows and not current_title:
+                unique_texts = set(cell.strip() for cell in row if cell.strip())
+                if len(unique_texts) == 1:
+                    text = unique_texts.pop()
+                    text_lower = text.lower()
+                    if "conceptual" in text_lower or "referencial" in text_lower or _INTERNAL_TITLE_RE.match(text):
+                        current_title = text
+                        continue
+            current_rows.append(row)
+
+    # Don't forget the last sub-table
+    if current_rows:
+        sub_tables.append((current_title, current_rows))
+
+    return sub_tables
+
+
+def _extract_from_docx(file_path: Path) -> list[dict]:
+    """
+    Extract tables from a DOCX file using python-docx, with type classification.
+
+    Each extracted table includes metadata about its detected type
+    (CONCEPTUAL, REFERENCIAL, or OTRO).
 
     Args:
         file_path: Path to the DOCX file
 
     Returns:
-        List of pandas DataFrames, one per table found
+        List of dicts with keys: "df" (DataFrame), "type" (str), "title" (str)
     """
     try:
         from docx import Document
@@ -98,23 +223,52 @@ def _extract_from_docx(file_path: Path) -> list:
         ) from e
 
     doc = Document(file_path)
-    dataframes = []
+    results = []
 
     for table in doc.tables:
         table_data = _get_table_data_docx(table)
-        if table_data and len(table_data) > 1:
-            # Use first row as header
-            df = pd.DataFrame(table_data[1:], columns=table_data[0])
-            dataframes.append(df)
-        elif table_data:
-            # Single row table (no header)
-            df = pd.DataFrame(table_data)
-            dataframes.append(df)
+        if not table_data:
+            continue
 
-    return dataframes
+        num_columns = _count_unique_columns(table)
+
+        # Check if this Word table contains multiple logical tables
+        first_row_text = " ".join(cell.strip() for cell in table_data[0] if cell.strip())
+        sub_tables = _split_merged_table(table_data)
+
+        if len(sub_tables) > 1:
+            # Merged table: process each sub-table independently
+            for title, rows in sub_tables:
+                if len(rows) > 1:
+                    df = pd.DataFrame(rows[1:], columns=rows[0])
+                elif rows:
+                    df = pd.DataFrame(rows)
+                else:
+                    continue
+                table_type = _classify_table_type(title, num_columns)
+                results.append({"df": df, "type": table_type, "title": title})
+        else:
+            # Single logical table
+            title = sub_tables[0][0] if sub_tables else ""
+            rows = sub_tables[0][1] if sub_tables else table_data
+
+            if len(rows) > 1:
+                df = pd.DataFrame(rows[1:], columns=rows[0])
+            elif rows:
+                df = pd.DataFrame(rows)
+            else:
+                continue
+
+            # If no title was extracted from splitting, use the first row text
+            if not title:
+                title = first_row_text
+            table_type = _classify_table_type(title, num_columns)
+            results.append({"df": df, "type": table_type, "title": title})
+
+    return results
 
 
-def _extract_from_pdf(file_path: Path) -> list:
+def _extract_from_pdf(file_path: Path) -> list[dict]:
     """
     Extract tables from a PDF file using tabula-py with pdfplumber fallback.
 
@@ -125,7 +279,7 @@ def _extract_from_pdf(file_path: Path) -> list:
         file_path: Path to the PDF file
 
     Returns:
-        List of pandas DataFrames, one per table found
+        List of dicts with keys: "df" (DataFrame), "type" (str), "title" (str)
     """
     import pandas as pd
 
@@ -189,10 +343,23 @@ def _extract_from_pdf(file_path: Path) -> list:
         except Exception:
             pass  # pdfplumber failed
 
-    return dataframes
+    # For PDFs we can't easily classify — try heuristic from content
+    results = []
+    for df in dataframes:
+        # Try to classify from first cell/column header text
+        first_text = ""
+        if not df.empty:
+            cols_text = " ".join(str(c) for c in df.columns)
+            first_cell = str(df.iloc[0, 0]) if len(df.columns) > 0 else ""
+            first_text = f"{cols_text} {first_cell}"
+
+        table_type = _classify_table_type(first_text, len(df.columns))
+        results.append({"df": df, "type": table_type, "title": first_text[:100]})
+
+    return results
 
 
-def extract_tables_from_submission(file_path: Path) -> list:
+def extract_tables_from_submission(file_path: Path) -> list[dict]:
     """
     Extract tables from a student submission file (DOCX or PDF).
 
@@ -203,7 +370,7 @@ def extract_tables_from_submission(file_path: Path) -> list:
         file_path: Path to the submission file (.docx or .pdf)
 
     Returns:
-        List of pandas DataFrames, one per table found.
+        List of dicts with keys: "df" (DataFrame), "type" (str), "title" (str).
         Returns empty list if file type is unsupported or no tables found.
     """
     ext = file_path.suffix.lower()
@@ -219,31 +386,59 @@ def extract_tables_from_submission(file_path: Path) -> list:
 
 # --- Table to Markdown Conversion ---
 
-def dataframes_to_markdown_context(dataframes: list, activity_id: str) -> str:
+_TYPE_LABELS = {
+    "CONCEPTUAL": "Listado Conceptual — 7 indicadores esperados",
+    "REFERENCIAL": "Listado Referencial — 11 indicadores esperados",
+    "OTRO": "Tipo no identificado",
+}
+
+
+def dataframes_to_markdown_context(tables: list, activity_id: str) -> str:
     """
-    Convert a list of extracted DataFrames into a structured Markdown string
+    Convert a list of extracted tables into a structured Markdown string
     for injection into the LLM prompt.
 
+    Accepts either:
+    - list[dict] with keys "df", "type", "title" (new classified format)
+    - list[DataFrame] (legacy format, no classification)
+
     Args:
-        dataframes: List of pandas DataFrames extracted from submission
-        activity_id: The activity identifier (e.g., "3.1", "3.2")
+        tables: List of table dicts or DataFrames extracted from submission
+        activity_id: The activity identifier (e.g., "2.1", "3.1")
 
     Returns:
         Formatted Markdown string with table data, or a note if no tables found
     """
-    if not dataframes:
+    if not tables:
         return f"// No se detectaron tablas para la actividad {activity_id}."
 
     markdown_parts = [
         f"\n// [INICIO DE DATOS ESTRUCTURADOS DE LA TAREA {activity_id}]"
     ]
 
-    for i, df in enumerate(dataframes):
+    for i, item in enumerate(tables):
+        # Support both new dict format and legacy DataFrame format
+        if isinstance(item, dict):
+            df = item["df"]
+            table_type = item.get("type", "OTRO")
+            title = item.get("title", "")
+        else:
+            # Legacy: bare DataFrame
+            df = item
+            table_type = "OTRO"
+            title = ""
+
+        type_label = _TYPE_LABELS.get(table_type, table_type)
+
         # Use pandas .to_markdown() for clean conversion
         table_markdown = df.to_markdown(index=False)
 
+        header = f"### Tabla {i+1}: {type_label}"
+        if title:
+            header += f"\nTítulo detectado: \"{title[:120]}\""
+
         markdown_parts.append(
-            f"\n### Tabla {i+1} (Extraída del Documento de la Entrega)\n"
+            f"\n{header}\n"
             f"```markdown_table\n"
             f"{table_markdown}\n"
             f"```"

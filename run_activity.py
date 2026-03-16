@@ -196,10 +196,38 @@ def build_table_injection_context(tables: list, activity_id: str, activity: dict
 
     table_markdown = dataframes_to_markdown_context(tables, activity_id)
 
+    # Check if this is a consulta de artículos activity (has both table types)
+    is_consulta = activity_id in {"2.1", "3.1"} if activity is None else (
+        "consulta_articulos" in activity.get("rubrica", "")
+    )
+
+    table_format_note = ""
+    if is_consulta:
+        table_format_note = (
+            "\nIMPORTANTE — DOS FORMATOS DE TABLA DISTINTOS:\n"
+            "Esta actividad usa DOS formatos de tabla UCA con diferente número de indicadores:\n"
+            "• Listado CONCEPTUAL (estudios clásicos/precursores): 7 indicadores.\n"
+            "  Campos: Título, Autor(es), Año, Número de páginas, Síntesis, "
+            "Relación con el tema, Referencia APA.\n"
+            "• Listado REFERENCIAL (estudios empíricos recientes ≤5 años): 11 indicadores.\n"
+            "  Campos: Autor(es), Año, Título, Introducción, Objetivo general, "
+            "Método, Técnicas e instrumentos, Principales resultados, "
+            "Discusión/Conclusión, Relación con el tema, Referencia APA.\n\n"
+            "REGLAS DE EVALUACIÓN DE TABLAS:\n"
+            "- Evalúa cada tabla según SU PROPIO formato. NO apliques el estándar de 11 "
+            "indicadores a tablas conceptuales.\n"
+            "- El tipo de tabla se determina por su título (\"conceptual\" o \"referencial\"), "
+            "NO por el año de publicación del estudio.\n"
+            "- Solo verifica antigüedad ≤5 años en tablas REFERENCIALES. "
+            "Las tablas conceptuales pueden incluir estudios de cualquier año.\n"
+            "- Se esperan 3 tablas conceptuales + 3 tablas referenciales = 6 en total.\n\n"
+        )
+
     return (
         f"CONTEXTO ADICIONAL DE LA ACTIVIDAD: Actividad {activity_id}\n\n"
         f"El estudiante ha presentado la siguiente información estructurada (tablas) "
         f"extraída de su documento:\n"
+        f"{table_format_note}"
         f"{table_markdown}\n\n"
         f"Asegúrate de evaluar la coherencia de estos datos estructurados con las "
         f"instrucciones y el resto del texto.\n\n"
